@@ -1,0 +1,17 @@
+# Configuration for actions/labeler to automatically categorize pull requests by touched file paths.
+# Shipped as .github/labeler.yml.example so adopters can customize rules before activation.
+# Rename this file to .github/labeler.yml and pair it with an actions/labeler workflow to activate.
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - 'CHECKLIST.md'
+
+scripts:
+  - changed-files:
+      - any-glob-to-any-file: 'scripts/**'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'

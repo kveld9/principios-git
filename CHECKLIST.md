@@ -54,6 +54,12 @@ Indispensable para repositorios colaborativos, equipos de ingeniería o proyecto
   - [ ] Linteo de código/documentación automatizado.
   - [ ] Ejecución de pruebas unitarias en cada push y PR.
 - [ ] **Limpieza de Ramas**: Opción de GitHub `Automatically delete head branches` activada.
+- [ ] **Actualizaciones Agrupadas de Dependabot (`groups`)**: Lotes agrupados para versiones menores y parches
+  en `.github/dependabot.yml`.
+- [ ] **Automatización de Mantenimiento (`stale` y `labeler`)**: Gestión automatizada de inactividad y etiquetado
+  por rutas con permisos mínimos en `.github/workflows/stale.yml.example` y `.github/labeler.yml.example`.
+- [ ] **Hooks Locales de Git (`core.hooksPath`)**: Validación de estándares previa al commit mediante hooks
+  versionados en `.githooks/`.
 
 ---
 

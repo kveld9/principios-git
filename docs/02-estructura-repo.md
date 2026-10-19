@@ -77,6 +77,15 @@ A continuación se detalla la estructura física que este kit estandariza:
 - **`.gitignore`**: Evita la filtración accidental de secretos (`.env`), paquetes pesados (`node_modules/`,
   `target/`, `venv/`), artefactos binarios o metadatos del sistema operativo (`.DS_Store`, `Thumbs.db`).
 
+#### Diagnóstico de la Barra de Lenguajes (Linguist)
+
+Para identificar grupos grandes de lenguajes no primarios, ejecute el diagnóstico:
+`git ls-files | sed 's/.*\.//' | sort | uniq -c | sort -rn`
+Clasifique cada ruta identificada en código propio, dependencias externas (*vendored*), herramientas
+de agentes/CI o código generado. Aplique en `.gitattributes` los atributos correspondientes:
+`linguist-vendored=true`, `linguist-documentation=true` o `linguist-generated=true`.
+Por último, valide que las reglas apliquen correctamente mediante `git check-attr`.
+
 ### Directorio de Gobernanza (`.github/`)
 
 - **`workflows/`**: Almacena los pipelines declarativos de GitHub Actions. Cada pipeline debe operar bajo el

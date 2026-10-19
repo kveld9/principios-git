@@ -19,6 +19,13 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # Uncomment the sections below according to your project's stack:
 
@@ -30,6 +37,13 @@ updates:
   #   open-pull-requests-limit: 10
   #   commit-message:
   #     prefix: "chore(deps)"
+  #   groups:
+  #     dependencies:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
 
   # # Python (pip / requirements.txt / pyproject.toml)
   # - package-ecosystem: "pip"

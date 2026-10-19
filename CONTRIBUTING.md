@@ -65,6 +65,11 @@ Feature requests and architectural changes should be submitted using the
 
 ## Development Workflow
 
+Before creating your first commit, configure your author identity using `user.name` and a privacy-preserving
+GitHub noreply email address (`<id>+<username>@users.noreply.github.com`). This prevents exposing personal
+email addresses in public commit metadata while preserving contribution attribution.
+See [Author Email Privacy (noreply)](docs/08-seguridad.md#privacidad-del-correo-del-autor-noreply).
+
 ### 1. Branch Naming
 
 Create a dedicated branch from `main`:

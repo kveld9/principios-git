@@ -206,6 +206,39 @@ git config --global commit.gpgsign true
 Los commits firmados lucirán el distintivo verde **Verified** en la interfaz web de GitHub, impidiendo
 la falsificación de identidad en entornos colaborativos y garantizando una auditoría forense inalterable.
 
+### Privacidad del Correo del Autor (noreply)
+
+Git asocia de forma estática `user.name` y `user.email` en cada objeto commit. Al publicar en un repositorio
+público de GitHub, dicha dirección queda expuesta en `git log`, en la API `/commits` o al añadir `.patch` a la
+URL del commit.
+
+Para resguardar la privacidad del correo personal:
+
+1. **Configuración en GitHub**: En **Settings -> Emails**, active las opciones **Keep my email addresses private**
+   y **Block command line pushes that expose my email** (bloquea del lado del servidor cualquier push que contenga
+   un correo personal en los commits).
+2. **Dirección proxy oficial**: GitHub provee una dirección con el formato `<id>+<username>@users.noreply.github.com`.
+3. **Configuración local de Git**:
+   Configure la dirección noreply de forma global (o mediante `--local` en un repositorio específico):
+
+   ```bash
+   git config --global user.email "<id>+<username>@users.noreply.github.com"
+   # O por repositorio individual:
+   git config --local user.email "<id>+<username>@users.noreply.github.com"
+   ```
+
+4. **Verificación**: Confirme la dirección activa con:
+
+   ```bash
+   git config user.email
+   ```
+
+5. **Consideraciones importantes**:
+   - **Atribución en GitHub**: Los commits que utilizan la dirección noreply mantienen la atribución correcta en el
+     perfil y en el gráfico de contribuciones de GitHub.
+   - **Alcance temporal**: Este cambio solo afecta a los commits futuros. El historial empujado previamente conserva
+     el correo anterior; purgarlo exige reescribir la historia con `git-filter-repo` o BFG y realizar un push forzado.
+
 ---
 
 ## 7. Control de Accesos y Gobernanza de Repositorio

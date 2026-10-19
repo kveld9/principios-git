@@ -49,6 +49,7 @@ funcionalidad. Debe incluir verticalmente:
 | `feat` | Nueva funcionalidad visible para el usuario o API | `feat(auth): add rate limiting to login endpoint` |
 | `fix` | Corrección de un defecto o comportamiento anómalo | `fix(parser): prevent panic on malformed JSON tokens` |
 | `docs` | Cambios exclusivos en documentación | `docs(readme): clarify local installation prerequisites` |
+| `style` | Formato y espacios en blanco sin cambio de lógica ni impacto en versión | `style(profile): align form padding with design tokens` |
 | `refactor` | Cambio de código que no altera el comportamiento externo | `refactor(db): extract connection pool initialization` |
 | `perf` | Optimización de rendimiento cuantificable | `perf(router): replace linear regex matching with trie` |
 | `test` | Incorporación o corrección de pruebas sin tocar código de producción | `test(auth): add boundary tests for token expiration` |
@@ -56,6 +57,15 @@ funcionalidad. Debe incluir verticalmente:
 | `ci` | Cambios en flujos de integración continua o scripts de automatización | `ci(actions): pin checkout action to v4 with sha` |
 | `chore` | Tareas rutinarias que no modifican código ni pruebas | `chore: update license copyright year to 2026` |
 | `revert` | Reversión de un commit previo | `revert: "feat(api): enable experimental websocket support"` |
+
+### Tipo → Impacto SemVer
+
+- `feat` → **MINOR**
+- `fix`, `perf` → **PATCH**
+- `docs`, `style`, `refactor`, `test`, `build`,
+  `ci`, `chore`, `revert` → sin impacto salvo breaking change (que incrementa a **MAJOR**)
+
+Para el cálculo automatizado de versiones, consulte [06 - Versiones y Lanzamientos](06-releases.md).
 
 ---
 
