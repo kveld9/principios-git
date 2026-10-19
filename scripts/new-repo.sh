@@ -56,14 +56,29 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -o|--owner)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: option '$1' requires a value." >&2
+        show_help
+        exit 1
+      fi
       OWNER="$2"
       shift 2
       ;;
     -y|--year)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: option '$1' requires a value." >&2
+        show_help
+        exit 1
+      fi
       YEAR="$2"
       shift 2
       ;;
     -e|--email)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: option '$1' requires a value." >&2
+        show_help
+        exit 1
+      fi
       EMAIL="$2"
       shift 2
       ;;
@@ -103,6 +118,14 @@ echo "    Year:  ${YEAR}"
 echo "    Email: ${EMAIL}"
 echo "    Force: ${FORCE}"
 
+escape_sed() {
+  printf '%s' "$1" | sed -e 's|\\|\\\\|g' -e 's|/|\\/|g' -e 's|&|\\&|g'
+}
+
+OWNER="$(escape_sed "${OWNER}")"
+YEAR="$(escape_sed "${YEAR}")"
+EMAIL="$(escape_sed "${EMAIL}")"
+
 copy_file() {
   local src="$1"
   local dest="$2"
@@ -117,9 +140,9 @@ copy_file() {
 
   # Substitute template placeholders if copying into target
   if [[ -f "${dest}" ]]; then
-    sed -i "s/\[YEAR\]/${YEAR}/g" "${dest}" 2>/dev/null || true
-    sed -i "s/\[OWNER\]/${OWNER}/g" "${dest}" 2>/dev/null || true
-    sed -i "s/security@example.com/${EMAIL}/g" "${dest}" 2>/dev/null || true
+    sed -i "s/\[YEAR\]/${YEAR}/g" "${dest}" 2>/dev/null
+    sed -i "s/\[OWNER\]/${OWNER}/g" "${dest}" 2>/dev/null
+    sed -i "s/security@example.com/${EMAIL}/g" "${dest}" 2>/dev/null
   fi
 
   echo "  [CREATE] ${dest#${TARGET_DIR}/}"
@@ -134,6 +157,7 @@ copy_file "${KIT_ROOT}/CODE_OF_CONDUCT.md" "${TARGET_DIR}/CODE_OF_CONDUCT.md"
 copy_file "${KIT_ROOT}/SECURITY.md" "${TARGET_DIR}/SECURITY.md"
 copy_file "${KIT_ROOT}/CONTRIBUTING.md" "${TARGET_DIR}/CONTRIBUTING.md"
 copy_file "${KIT_ROOT}/CHECKLIST.md" "${TARGET_DIR}/CHECKLIST.md"
+copy_file "${KIT_ROOT}/README.md" "${TARGET_DIR}/README.md"
 
 # 2. GitHub Automation & Templates (.github/)
 mkdir -p "${TARGET_DIR}/.github/workflows"

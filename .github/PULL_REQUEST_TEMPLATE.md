@@ -46,8 +46,8 @@ Describe the testing performed to ensure correctness, reproducibility, and preve
 
 Before submitting this pull request for review, confirm the following:
 
-- [ ] My code adheres to the project's formatting and styling standards ([`.editorconfig`](.editorconfig)).
-- [ ] Commit history is atomic, clean, and follows [Conventional Commits](docs/04-commits.md).
+- [ ] My code adheres to the project's formatting and styling standards ([`.editorconfig`](../.editorconfig)).
+- [ ] Commit history is atomic, clean, and follows [Conventional Commits](../docs/04-commits.md).
 - [ ] I have updated corresponding documentation in `docs/` or `README.md` if public APIs, commands, flags, or configuration changed.
 - [ ] No temporary files, debug logging, or foreign changes are included.
 - [ ] No secrets, keys, or credentials are introduced.
