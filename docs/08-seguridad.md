@@ -161,6 +161,54 @@ Los commits firmados lucirán el distintivo verde **Verified** en la interfaz we
 
 ---
 
+## 7. Control de Accesos y Gobernanza de Repositorio
+
+La seguridad del código fuente exige aplicar el principio de menor privilegio (*least privilege*) tanto en la infraestructura de CI como en la asignación de permisos humanos y accesos automatizados a nivel de organización.
+
+### Roles de Repositorio en Organizaciones
+
+GitHub provee cinco niveles de roles estándar para miembros y colaboradores externos en repositorios de organización:
+
+| Rol | Capacidades Principales | Cuándo Otorgarlo (Menor Privilegio) |
+| :--- | :--- | :--- |
+| **Read** | Clonar, inspeccionar código fuente, descargar artefactos, abrir issues y comentar en PRs. | Colaboradores de solo consulta, auditores externos, stakeholders o miembros de otros equipos de la organización. |
+| **Triage** | Aplicar etiquetas, asignar responsables, cerrar issues y moderar discusiones sin permisos de escritura en ramas. | Gestores de producto, soporte técnico o moderadores de comunidad que organizan el backlog sin alterar código. |
+| **Write** | Crear ramas de trabajo, realizar push a ramas no protegidas, abrir PRs y editar issues/proyectos. | Desarrolladores e ingenieros de software activos que contribuyen código de forma regular. |
+| **Maintain** | Gestionar configuración habitual del repositorio, hitos, proyectos y temas, sin acceso a acciones destructivas o sensibles. | Líderes técnicos o coordinadores de equipo que supervisan el proyecto sin requerir privilegios de seguridad o borrado. |
+| **Admin** | Acceso total: gestión de colaboradores, cambio de visibilidad, borrado del repositorio y configuración de reglas de seguridad/rulesets. | Responsables de infraestructura, seguridad o dueños directos del componente (restringido al mínimo estricto). |
+
+> [!NOTE]
+> - **Permisos Base de Organización (*Base Permissions*)**: Configure los permisos base de la organización en **Read** o **None** (nunca *Write*). Todo acceso adicional debe asignarse explícitamente mediante equipos (*Teams*).
+> - **Roles Custom (GitHub Enterprise)**: Para organizaciones con planes Enterprise, defina roles a la medida si un equipo necesita capacidades puntuales (por ejemplo, gestionar solo variables de entorno o revisar alertas de seguridad) sin escalar a *Admin*.
+> - **Owners de Organización**: Tienen privilegios de administrador implícitos en todos los repositorios; su cantidad debe mantenerse en el mínimo necesario con autenticación de dos factores (2FA) mandatoria.
+
+### Gobernanza con GitHub Repository Rulesets
+Para garantizar que las restricciones sobre ramas críticas y tags de release sean consistentes, auditables y versionadas, utilice **Repository Rulesets** en lugar de las branch protections clásicas:
+- Permiten definir políticas transversales sobre múltiples ramas y tags en una única especificación declarativa.
+- Soportan el modo **`evaluate`** para simular el impacto de nuevas restricciones sin bloquear el trabajo activo del equipo.
+- Permiten auditoría granular de actores exentos (*bypass list*) por equipo o rol.
+
+Consulte la plantilla de especificación lista para usar en [`.github/settings.example.yml`](../.github/settings.example.yml).
+
+### Gestión Crítica de Deploy Keys y Credenciales de Máquina
+Las **Deploy Keys** son claves SSH registradas a nivel de repositorio para permitir operaciones automatizadas de lectura o escritura (por ejemplo, en servidores de despliegue o sincronización).
+
+> [!WARNING]
+> **Vulnerabilidad de Persistencia**: Las *Deploy Keys* son credenciales vinculadas al repositorio, no a la cuenta de usuario que las añadió. Si un desarrollador o administrador abandona la organización o el proyecto, **las deploy keys que configuró continúan funcionando de forma indefinida**.
+
+**Protocolo de Gestión Segura de Deploy Keys**:
+1. **Acceso de Solo Lectura por Defecto**: Salvo que la clave deba realizar pushes directos (altamente desaconsejado), mantenga desmarcada la opción *Allow write access*.
+2. **Inventario e Identificación Clara**: Asigne un título descriptivo que documente el servidor y propósito (ej. `deploy-read-prod-cluster-01`).
+3. **Rotación Obligatoria ante Cambios de Personal**: Audite e invalide de inmediato cualquier deploy key o token de servicio cuando un integrante con privilegios administrativos o acceso al servidor correspondiente deje la organización.
+4. **Preferencia por GitHub Apps o OIDC**: Para pipelines modernos de CI/CD, reemplace las deploy keys estáticas por autenticación OIDC efímera o GitHub Apps con permisos acotados.
+
+### Auditoría Periódica de Accesos
+1. **Revisión Trimestral de Membresías**: Audite la lista de colaboradores directos, equipos con acceso y cuentas de servicio externas.
+2. **Remoción de Colaboradores Externos Inactivos**: Revoque accesos huérfanos de contratistas o proyectos finalizados.
+3. **Auditoría de Tokens de Acceso Personal (PATs)**: Prohíba el uso de PATs clásicos personales en automatizaciones compartidas; exija Fine-Grained Personal Access Tokens con caducidad obligatoria (máximo 90 días) o GitHub Apps organizacionales.
+
+---
+
 ## Navegación
 
 - Anterior: [07 - Integración Continua y Automatización](07-ci.md)

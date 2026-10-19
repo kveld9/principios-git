@@ -34,7 +34,7 @@ Este kit unifica la estructura de archivos, políticas de seguridad, convencione
 │   │   └── feature_request.md        # Propuestas de funcionalidades y diseño arquitectónico
 │   ├── PULL_REQUEST_TEMPLATE.md      # Lista de verificación previa para autores de PRs
 │   ├── CODEOWNERS.example            # Asignación de revisores por ruta o subsistema
-│   └── settings.example.yml          # Especificación de protección de ramas y políticas de merge
+│   └── settings.example.yml          # Especificación de rulesets modernos, protección y políticas de merge
 │
 ├── 🛠️ Scripts Utilitarios (scripts/)
 │   ├── check-repo.sh                 # Auditor de conformidad de estándares (código de salida 0/1)
@@ -90,7 +90,7 @@ Para aplicar el kit completo sustituyendo marcadores de posición de forma autom
 3. Si requiere releases automatizados, adapte `.github/workflows/release.yml.example` o `.releaserc.js.example` según su ecosistema de empaquetado.
 
 ### 4. Activar Protección de Ramas y Secretos en GitHub
-Siga las especificaciones documentadas en [`.github/settings.example.yml`](.github/settings.example.yml) o en la [Guía de Ramas](docs/03-branching.md) para bloquear pushes directos a `main`, exigir revisiones de código, activar el escaneo de secretos y requerir que los checks de CI pasen de forma obligatoria.
+Siga las especificaciones documentadas en [`.github/settings.example.yml`](.github/settings.example.yml) o en la [Guía de Ramas](docs/03-branching.md) para configurar **Repository Rulesets** activos sobre `~DEFAULT_BRANCH` y tags de versión `refs/tags/v*`, bloquear pushes directos, requerir revisiones de código, activar el escaneo de secretos y exigir checks de CI y SAST de forma obligatoria.
 
 ---
 

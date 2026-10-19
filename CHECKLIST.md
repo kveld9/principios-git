@@ -44,13 +44,20 @@ Indispensable para repositorios colaborativos, equipos de ingeniería o proyecto
 
 Requerido para sistemas en producción, infraestructura crítica, librerías con alto tráfico o código institucional.
 
+- [ ] **Gobernanza con Rulesets Activos (`.github/settings.example.yml`)**:
+  - [ ] Ruleset aplicado a rama default (`~DEFAULT_BRANCH`) con revisiones obligatorias, status checks estrictos y escaneo SAST (CodeQL).
+  - [ ] Ruleset de inmutabilidad de tags de release (`refs/tags/v*`) contra borrado o force-update.
+  - [ ] Bypass list acotada exclusivamente a roles esenciales o equipos de emergencia sin excepciones genéricas.
+- [ ] **Control de Accesos por Menor Privilegio**: Permisos base de organización restringidos (Read/None) y roles de repositorio asignados por función técnica mínima (Read, Triage, Write, Maintain, Admin).
+- [ ] **Revisión Periódica de Accesos**: Auditoría trimestral de miembros, colaboradores externos, permisos de equipos y revocación de accesos huérfanos.
+- [ ] **Inventario y Rotación de Deploy Keys**: Deploy keys registradas con propósito explícito (solo lectura preferida) y rotación inmediata ante salida de colaboradores o cambio de infraestructura.
 - [ ] **Protección Estricta de Rama `main`**:
   - [ ] Prohibido el push directo (todo entra vía Pull Request).
   - [ ] Mínimo 1 aprobación humana obligatoria.
   - [ ] Status checks de CI aprobados obligatoriamente antes de autorizar el merge.
   - [ ] Historial lineal estricto (bloqueo de merge commits desordenados; uso obligatorio de Squash o Rebase).
-  - [ ] Reglas aplicadas de forma estricta a administradores (`enforce_admins: true`).
-- [ ] **Protección de Etiquetas (`v*`)**: Regla de tag protection configurada para impedir sobreescritura o borrado de versiones.
+  - [ ] Reglas aplicadas de forma estricta a administradores (`enforce_admins: true` o bypass ausente).
+- [ ] **Protección de Etiquetas (`v*`)**: Regla o ruleset de tags configurado para impedir sobreescritura o borrado de versiones.
 - [ ] **Detección Continua de Fuga de Secretos (`.github/workflows/gitleaks.yml`)**: Escaneo activo en CI con `fetch-depth: 0` en push y PRs.
 - [ ] **Análisis Estático Automatizado (`.github/workflows/codeql.yml.example`)**: Escaneo semanal programado y en PRs con CodeQL (SARIF upload, `security-events: write`).
 - [ ] **Auditoría Continua de Dependencias (`.github/dependabot.yml`)**: Actualizaciones automatizadas semanales de GitHub Actions y ecosistemas de paquetes.
