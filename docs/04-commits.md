@@ -64,6 +64,7 @@ Un commit atómico no separa artificialmente el frontend del backend cuando form
    - Explica el *por qué* y no solo el *qué*.
    - Describe efectos secundarios relevantes, restricciones de hardware o razones por las que se descartó una alternativa obvia.
 5. **Cero Atribución de Herramientas**: No contaminar los mensajes con pies automáticos tipo `Co-authored-by: bot` o slogans promocionales de asistentes de IA. El autor y committer deben ser identidades válidas y rastreables.
+6. **Prohibición Estricta de Emojis**: Queda vetado el uso de emojis en títulos, cuerpos o pies de commits (por ejemplo, redactar `feat: add login` en lugar de `feat: 🚀 add login`). Esto asegura compatibilidad con terminales headless, herramientas de diff/patch por email y generadores deterministas de changelog (véase [11 - Convenciones de Estilo](11-estilo.md)).
 
 ---
 

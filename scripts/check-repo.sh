@@ -108,6 +108,8 @@ check_file "docs/07-ci.md" true
 check_file "docs/08-seguridad.md" true
 check_file "docs/09-licencias.md" true
 check_file "docs/10-adopcion.md" true
+check_file "docs/11-estilo.md" true
+check_file "docs/12-modularizacion.md" true
 
 echo -e "\n${BOLD}5. Maintenance & Setup Automation (scripts/)${RESET}"
 check_file "scripts/check-repo.sh" true

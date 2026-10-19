@@ -28,8 +28,12 @@ Indispensable para repositorios colaborativos, equipos de ingeniería o proyecto
   - [ ] `bug_report.md`: Exige pasos de reproducción, comportamiento esperado/real y versiones del entorno.
   - [ ] `feature_request.md`: Exige justificación de la necesidad técnica, diseño preliminar y casos de uso.
 - [ ] **Plantilla de Pull Request (`.github/PULL_REQUEST_TEMPLATE.md`)**: Lista de control previa que obliga al autor a verificar atomicidad, pruebas y documentación antes de solicitar revisión.
+- [ ] **Prohibición de Emojis en Superficies de Ejecución**: Emojis vetados en código, scripts, configs, logs, CI y commits; permitidos únicamente en documentación humana y notas de release ([Guía de Estilo](docs/11-estilo.md)).
+- [ ] **Estándares Profesionales de Código**: Funciones pequeñas con responsabilidad única, eliminación de literales mágicos, manejo explícito de errores (*fail-loud*), cero código muerto y principio DRY con criterio ([Guía de Estilo](docs/11-estilo.md)).
+- [ ] **Arquitectura Modular y Desacoplada**: Alta cohesión, bajo acoplamiento, dependencias unidireccionales sin ciclos, contratos explícitos y organización por feature o dominio ([Guía de Modularización](docs/12-modularizacion.md)).
 - [ ] **Pipeline de CI Básico (`.github/workflows/ci.yml`)**:
   - [ ] Permisos restringidos a solo lectura (`permissions: contents: read`).
+  - [ ] Auditoría de estándares y verificación automatizada de ausencia de emojis en ejecución.
   - [ ] Linteo de código/documentación automatizado.
   - [ ] Ejecución de pruebas unitarias en cada push y PR.
 - [ ] **Limpieza de Ramas**: Opción de GitHub `Automatically delete head branches` activada.

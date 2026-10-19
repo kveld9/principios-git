@@ -36,7 +36,9 @@ A continuación se detalla la estructura física que este kit estandariza:
 │   ├── 07-ci.md
 │   ├── 08-seguridad.md
 │   ├── 09-licencias.md
-│   └── 10-adopcion.md
+│   ├── 10-adopcion.md
+│   ├── 11-estilo.md
+│   └── 12-modularizacion.md
 ├── LICENSE                     # Licencia legal del software (MIT por defecto)
 ├── README.md                   # Portal de entrada, descripción general y guía de inicio rápido
 ├── scripts/                    # Scripts utilitarios y herramientas de automatización
@@ -70,7 +72,7 @@ A continuación se detalla la estructura física que este kit estandariza:
 ### Documentación Modular (`docs/`)
 La documentación no debe concentrarse en un único `README.md` monolítico de miles de líneas.
 - La raíz contiene el resumen ejecutivo y arranque rápido.
-- El directorio `docs/` contiene guías especializadas organizadas secuencialmente con numeración prefijada (`01-...`, `02-...`), facilitando su lectura tanto en la web como en navegadores de archivos locales.
+- El directorio `docs/` contiene guías especializadas organizadas secuencialmente con numeración prefijada (`01-...`, `12-...`), facilitando su lectura tanto en la web como en navegadores de archivos locales. Incluye estándares transversales de calidad ([11 - Convenciones de Estilo](11-estilo.md)) y diseño de componentes ([12 - Modularización](12-modularizacion.md)).
 
 ### Scripts Utilitarios (`scripts/`)
 Los scripts deben ser deterministas, ejecutables (`chmod +x`), poseer encabezados bash seguros (`set -euo pipefail`) y permitir su invocación tanto en local por el desarrollador como en los pipelines de CI.
@@ -82,6 +84,8 @@ Los scripts deben ser deterministas, ejecutables (`chmod +x`), poseer encabezado
 1. **Cero archivos huérfanos o temporales**: No deben commitearse archivos `.bak`, `.tmp`, notas personales o borradores en la raíz del repositorio.
 2. **Nombres de archivo predecibles**: Todo en minúsculas y separado por guiones medios para scripts y documentación (`mi-documento.md`, `mi-script.sh`), excepto los archivos estándar de GitHub que usan mayúsculas por convención histórica (`README.md`, `LICENSE`, `SECURITY.md`).
 3. **Independencia de compilación**: La documentación en markdown debe ser legible directamente en GitHub y navegadores de texto, sin obligar al usuario a instalar generadores de sitios estáticos pesados (como MkDocs o Docusaurus) a menos que la escala del proyecto lo justifique formalmente.
+4. **Prohibición de emojis en superficies de ejecución**: No incluir emojis en nombres de archivos, scripts, configuraciones ni código fuente; reservados exclusivamente para documentación humana (`README.md`, `docs/`) y notas de versión (véase [11 - Convenciones de Estilo](11-estilo.md)).
+5. **Modularidad y diseño desacoplado**: La estructura física debe reflejar fronteras de responsabilidad bien delimitadas, evitando carpetas cajón de sastre y dependencias circulares (véase [12 - Modularización](12-modularizacion.md)).
 
 ---
 

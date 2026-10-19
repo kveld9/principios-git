@@ -46,7 +46,9 @@ Este kit unifica la estructura de archivos, políticas de seguridad, convencione
     ├── 07-ci.md                      # Principios de seguridad y arquitectura en GitHub Actions
     ├── 08-seguridad.md               # Prevención de fuga de secretos y auditoría de dependencias
     ├── 09-licencias.md               # Guía para la elección y aplicación de licencias open source
-    └── 10-adopcion.md                # Procedimiento de migración en repositorios preexistentes
+    ├── 10-adopcion.md                # Procedimiento de migración en repositorios preexistentes
+    ├── 11-estilo.md                  # Convenciones de estilo, prohibición de emojis y código limpio
+    └── 12-modularizacion.md          # Arquitectura de componentes, límites y desacoplamiento
 ```
 
 ---
@@ -99,6 +101,8 @@ Siga las especificaciones documentadas en [`.github/settings.example.yml`](.gith
 8. [**Seguridad y Vulnerabilidades**](docs/08-seguridad.md): Divulgación responsable, prevención de fuga de credenciales y remediación.
 9. [**Guía de Licencias**](docs/09-licencias.md): Clasificación de licencias (MIT, Apache, GPL, AGPL) y propiedad intelectual.
 10. [**Guía de Adopción e Integración**](docs/10-adopcion.md): Migración paso a paso en repositorios con código preexistente.
+11. [**Estilo y Estándares Profesionales**](docs/11-estilo.md): Prohibición de emojis en ejecución, convenciones de nombres, funciones pequeñas y fail-loud.
+12. [**Modularización y Arquitectura**](docs/12-modularizacion.md): Responsabilidad única por módulo, contratos desacoplados, dependencias acíclicas y organización por feature.
 
 ---
 

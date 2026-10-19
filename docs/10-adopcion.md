@@ -111,4 +111,5 @@ Si el resultado reporta `Result: PASSED`, el repositorio cuenta formalmente con 
 ## Navegación
 
 - Anterior: [09 - Guía de Licencias de Software](09-licencias.md)
+- Siguiente: [11 - Convenciones de Estilo y Calidad de Código](11-estilo.md)
 - Volver al [README principal](../README.md)
