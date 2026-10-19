@@ -1,15 +1,20 @@
 # 09 - Guía de Licencias de Software y Propiedad Intelectual
 
-La elección de una licencia define los derechos legales de uso, modificación, distribución y comercialización que el autor otorga al público. 
+La elección de una licencia define los derechos legales de uso, modificación, distribución y comercialización
+que el autor otorga al público.
 
 > [!IMPORTANT]
-> **Sin archivo LICENSE = Todos los derechos reservados**: Según el Convenio de Berna sobre propiedad intelectual, la ausencia de una licencia no convierte al código en dominio público. Por el contrario, reserva legalmente todos los derechos al autor original, impidiendo que terceros puedan legalmente clonarlo, ejecutarlo, compilarlo o enviar contribuciones.
+> **Sin archivo LICENSE = Todos los derechos reservados**: Según el Convenio de Berna sobre propiedad intelectual,
+> la ausencia de una licencia no convierte al código en dominio público. Por el contrario, reserva legalmente todos
+> los derechos al autor original, impidiendo que terceros puedan legalmente clonarlo, ejecutarlo, compilarlo o
+> enviar contribuciones.
 
 ---
 
 ## 1. Clasificación de Licencias de Software Libre y Código Abierto
 
-Las licencias aprobadas por la OSI (*Open Source Initiative*) se dividen fundamentalmente en dos categorías: **permisivas** y **recíprocas (copyleft)**.
+Las licencias aprobadas por la OSI (*Open Source Initiative*) se dividen fundamentalmente en dos categorías:
+**permisivas** y **recíprocas (copyleft)**.
 
 ```text
                                  LICENCIAS OPEN SOURCE
@@ -46,7 +51,8 @@ Las licencias aprobadas por la OSI (*Open Source Initiative*) se dividen fundame
    - Elija **Apache 2.0**.
 3. **"Quiero una aplicación que siempre sea libre; si alguien la mejora y la distribuye, debe compartir el código fuente":**
    - Elija **GPLv3**.
-4. **"Estoy creando un servicio o backend en la nube y no quiero que empresas de hosting ofrezcan mi trabajo como servicio privativo sin aportar código":**
+4. **"Estoy creando un servicio o backend en la nube y no quiero que empresas de hosting ofrezcan mi trabajo como
+   servicio privativo sin aportar código":**
    - Elija **AGPLv3**.
 
 ---
@@ -59,11 +65,13 @@ Por defecto, este kit incluye la licencia **MIT** en [`LICENSE`](../LICENSE) con
 Copyright (c) [YEAR] [OWNER]
 ```
 
-### Pasos para Configurar su Licencia:
+### Pasos para Configurar su Licencia
+
 1. Abra el archivo `LICENSE` en la raíz.
 2. Reemplace `[YEAR]` con el año actual (ejemplo: `2026`).
 3. Reemplace `[OWNER]` con su nombre completo, pseudónimo habitual o razón social de su organización (ejemplo: `Acme Corporation`).
-4. Si decide utilizar otra licencia (como Apache 2.0 o GPLv3), reemplace el contenido completo del archivo `LICENSE` con el texto oficial correspondiente obtenido de [choosealicense.com](https://choosealicense.com/).
+4. Si decide utilizar otra licencia (como Apache 2.0 o GPLv3), reemplace el contenido completo del archivo `LICENSE`
+   con el texto oficial correspondiente obtenido de [choosealicense.com](https://choosealicense.com/).
 
 ---
 

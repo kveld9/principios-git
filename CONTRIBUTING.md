@@ -1,6 +1,7 @@
 # Contributing to This Project
 
-Thank you for your interest in contributing! We welcome contributions that improve code quality, documentation, performance, and user experience while maintaining rigorous engineering standards.
+Thank you for your interest in contributing! We welcome contributions that improve code quality, documentation,
+performance, and user experience while maintaining rigorous engineering standards.
 
 Please review this document and our [Code of Conduct](CODE_OF_CONDUCT.md) before submitting contributions.
 
@@ -24,7 +25,8 @@ Please review this document and our [Code of Conduct](CODE_OF_CONDUCT.md) before
 
 ## Code of Conduct
 
-All contributors and maintainers are expected to adhere to our [Code of Conduct](CODE_OF_CONDUCT.md). Please report any unacceptable behavior to `security@example.com` or the designated project contact.
+All contributors and maintainers are expected to adhere to our [Code of Conduct](CODE_OF_CONDUCT.md). Please
+report any unacceptable behavior to `security@example.com` or the designated project contact.
 
 ---
 
@@ -35,6 +37,7 @@ All contributors and maintainers are expected to adhere to our [Code of Conduct]
 Before creating a bug report, please check existing issues to ensure the problem has not already been reported.
 
 When opening a bug report via our [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md), include:
+
 - A clear, descriptive title.
 - Clear reproduction steps.
 - Expected behavior vs. actual behavior.
@@ -43,15 +46,19 @@ When opening a bug report via our [Bug Report Template](.github/ISSUE_TEMPLATE/b
 
 ### Suggesting Enhancements
 
-Feature requests and architectural changes should be submitted using the [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md). Provide:
+Feature requests and architectural changes should be submitted using the
+[Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md). Provide:
+
 - The problem or limitation you are trying to solve.
 - The proposed solution and rationale.
 - Any alternative approaches considered.
 
 ### Submitting Pull Requests
 
-1. **Keep Changes Focused**: Each pull request should address a single concern, fix, or feature. Avoid bundling unrelated formatting, refactoring, or unrelated changes into one PR.
-2. **Open an Issue First**: For non-trivial features or refactorings, discuss the proposal in an issue before writing code to align on direction.
+1. **Keep Changes Focused**: Each pull request should address a single concern, fix, or feature. Avoid
+   bundling unrelated formatting, refactoring, or unrelated changes into one PR.
+2. **Open an Issue First**: For non-trivial features or refactorings, discuss the proposal in an issue
+   before writing code to align on direction.
 3. **Draft PRs**: Open a draft PR early if you want feedback on architecture or work-in-progress.
 
 ---
@@ -67,6 +74,7 @@ git checkout -b <type>/<short-description>
 ```
 
 Branch types:
+
 - `feat/`: New user-facing feature or enhancement
 - `fix/`: Bug fix
 - `refactor/`: Code reorganization without behavioral change
@@ -75,6 +83,7 @@ Branch types:
 - `chore/`: Build tasks, dependencies, tooling updates
 
 *Examples:*
+
 - `feat/jwt-authentication`
 - `fix/connection-timeout`
 - `docs/readme-quickstart`
@@ -99,13 +108,22 @@ We follow the **Conventional Commits** specification (`feat`, `fix`, `docs`, `re
 
 ### 3. Code Style & Standards
 
-- **Emoji Prohibition**: Emojis are strictly prohibited in code, scripts, configuration files, CLI logs, CI workflows, filenames, and commit messages. They are permitted exclusively in human-facing documentation (`README.md`, `docs/`) and release notes. See [`docs/11-estilo.md`](docs/11-estilo.md).
-- **Formatting**: Ensure your editor respects [`.editorconfig`](.editorconfig) settings (UTF-8, LF line endings, 2 or 4 spaces indentation as specified).
+- **Emoji Prohibition**: Emojis are strictly prohibited in code, scripts, configuration files, CLI logs, CI workflows,
+  filenames, and commit messages. They are permitted exclusively in human-facing documentation (`README.md`, `docs/`)
+  and release notes. See [`docs/11-estilo.md`](docs/11-estilo.md).
+- **Formatting**: Ensure your editor respects [`.editorconfig`](.editorconfig) settings (UTF-8, LF line endings,
+  2 or 4 spaces indentation as specified).
 - **Line Endings**: Always commit with LF line endings as configured in [`.gitattributes`](.gitattributes).
 - **Linters & Tests**: Run repository linters and test suites before submitting changes.
-- **Dependencies & Simplicity**: Do not introduce unnecessary external dependencies. Prefer minimal, standard-library-driven solutions where feasible.
-- **Clean Code Standards**: Write small, single-responsibility functions with low cyclomatic complexity. Avoid magic numbers and strings by defining named constants. Never suppress errors silently (e.g., empty catch blocks or `|| true`); follow fail-loud error handling. Keep code clean of commented-out dead code, and apply DRY pragmatically without premature abstraction. See [`docs/11-estilo.md`](docs/11-estilo.md).
-- **Modular Architecture**: Enforce high internal cohesion, explicit contracts, and unidirectional dependencies without cycles. Organize code by feature or domain rather than generic technical file types. See [`docs/12-modularizacion.md`](docs/12-modularizacion.md).
+- **Dependencies & Simplicity**: Do not introduce unnecessary external dependencies. Prefer minimal,
+  standard-library-driven solutions where feasible.
+- **Clean Code Standards**: Write small, single-responsibility functions with low cyclomatic complexity. Avoid
+  magic numbers and strings by defining named constants. Never suppress errors silently (e.g., empty catch
+  blocks or `|| true`); follow fail-loud error handling. Keep code clean of commented-out dead code, and apply
+  DRY pragmatically without premature abstraction. See [`docs/11-estilo.md`](docs/11-estilo.md).
+- **Modular Architecture**: Enforce high internal cohesion, explicit contracts, and unidirectional dependencies
+  without cycles. Organize code by feature or domain rather than generic technical file types.
+  See [`docs/12-modularizacion.md`](docs/12-modularizacion.md).
 
 ---
 
@@ -127,6 +145,7 @@ Before marking your PR as ready for review, verify:
 ## Further Reading
 
 Detailed architectural and procedural standards can be found in the [`docs/`](docs/) directory:
+
 - [Git Principles & Philosophy](docs/01-principios.md)
 - [Repository Structure Standard](docs/02-estructura-repo.md)
 - [Branching Strategy](docs/03-branching.md)

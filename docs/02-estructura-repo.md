@@ -1,6 +1,9 @@
 # 02 - Estructura Estándar de un Repositorio
 
-La arquitectura de directorios de un repositorio debe ser autoexplicativa, predecible y uniforme a lo largo de toda una organización o portafolio de proyectos. Cualquier desarrollador o sistema de CI debe ser capaz de ubicar la configuración de linters, las pruebas, los puntos de entrada y las políticas de contribución sin requerir inducción verbal.
+La arquitectura de directorios de un repositorio debe ser autoexplicativa, predecible y uniforme a lo largo
+de toda una organización o portafolio de proyectos. Cualquier desarrollador o sistema de CI debe ser capaz
+de ubicar la configuración de linters, las pruebas, los puntos de entrada y las políticas de contribución
+sin requerir inducción verbal.
 
 ---
 
@@ -52,40 +55,70 @@ A continuación se detalla la estructura física que este kit estandariza:
 ## 2. Descripción de Componentes Críticos
 
 ### Raíz del Repositorio (Root Files)
-- **`README.md`**: Es la tarjeta de presentación técnica. Debe responder en los primeros 30 segundos: ¿qué problema resuelve el proyecto?, ¿cómo se instala/ejecuta?, y ¿cuál es el estado de la build?
-- **`LICENSE`**: Todo repositorio público o compartido sin licencia explícita es, por defecto de copyright internacional, de uso privativo exclusivo del autor, lo que impide legalmente que terceros lo utilicen o contribuyan.
-- **`CONTRIBUTING.md`**: Define el contrato entre mantenedores y colaboradores: normas de commits, flujo de ramas, requerimientos de pruebas y pasos para compilar en local.
+
+- **`README.md`**: Es la tarjeta de presentación técnica. Debe responder en los primeros 30 segundos: ¿qué
+  problema resuelve el proyecto?, ¿cómo se instala/ejecuta?, y ¿cuál es el estado de la build?
+- **`LICENSE`**: Todo repositorio público o compartido sin licencia explícita es, por defecto de copyright
+  internacional, de uso privativo exclusivo del autor, lo que impide legalmente que terceros lo utilicen o
+  contribuyan.
+- **`CONTRIBUTING.md`**: Define el contrato entre mantenedores y colaboradores: normas de commits, flujo de
+  ramas, requerimientos de pruebas y pasos para compilar en local.
 - **`SECURITY.md`**: Canal formal para reportar fallos de seguridad sin exponer al proyecto a exploits de día cero.
-- **`CHECKLIST.md`**: Matriz condensada para auditar rápidamente si un repositorio cumple los niveles Mínimo, Recomendado y Avanzado de calidad.
+- **`CHECKLIST.md`**: Matriz condensada para auditar rápidamente si un repositorio cumple los niveles
+  Mínimo, Recomendado y Avanzado de calidad.
 
 ### Configuración del Entorno de Desarrollo
-- **`.editorconfig`**: Neutraliza discrepancias entre editores (espacios vs tabuladores, final de línea CRLF vs LF, espacios sobrantes al final de línea). Respaldado nativamente por prácticamente todos los IDEs modernos.
-- **`.gitattributes`**: Garantiza que los saltos de línea se conviertan a LF en Linux/macOS y Windows al momento del commit (`* text=auto eol=lf`). Evita que commits gigantescos se ensucien por diferencias invisibles de retorno de carro (`\r\n`).
-- **`.gitignore`**: Evita la filtración accidental de secretos (`.env`), paquetes pesados (`node_modules/`, `target/`, `venv/`), artefactos binarios o metadatos del sistema operativo (`.DS_Store`, `Thumbs.db`).
+
+- **`.editorconfig`**: Neutraliza discrepancias entre editores (espacios vs tabuladores, final de línea CRLF
+  vs LF, espacios sobrantes al final de línea). Respaldado nativamente por prácticamente todos los IDEs modernos.
+- **`.gitattributes`**: Garantiza que los saltos de línea se conviertan a LF en Linux/macOS y Windows al
+  momento del commit (`* text=auto eol=lf`). Evita que commits gigantescos se ensucien por diferencias
+  invisibles de retorno de carro (`\r\n`).
+- **`.gitignore`**: Evita la filtración accidental de secretos (`.env`), paquetes pesados (`node_modules/`,
+  `target/`, `venv/`), artefactos binarios o metadatos del sistema operativo (`.DS_Store`, `Thumbs.db`).
 
 ### Directorio de Gobernanza (`.github/`)
-- **`workflows/`**: Almacena los pipelines declarativos de GitHub Actions. Cada pipeline debe operar bajo el principio de menor privilegio (`permissions: contents: read`).
-- **`ISSUE_TEMPLATE/`**: Filtra reportes ambiguos o incompletos, exigiendo pasos de reproducción y especificaciones concretas de entorno.
+
+- **`workflows/`**: Almacena los pipelines declarativos de GitHub Actions. Cada pipeline debe operar bajo el
+  principio de menor privilegio (`permissions: contents: read`).
+- **`ISSUE_TEMPLATE/`**: Filtra reportes ambiguos o incompletos, exigiendo pasos de reproducción y
+  especificaciones concretas de entorno.
 - **`PULL_REQUEST_TEMPLATE.md`**: Fuerza al autor del PR a autoevaluar su impacto antes de solicitar la atención de un revisor.
 - **`dependabot.yml`**: Monitorea automáticamente vulnerabilidades de dependencias y las mantiene al día.
 
 ### Documentación Modular (`docs/`)
+
 La documentación no debe concentrarse en un único `README.md` monolítico de miles de líneas.
+
 - La raíz contiene el resumen ejecutivo y arranque rápido.
-- El directorio `docs/` contiene guías especializadas organizadas secuencialmente con numeración prefijada (`01-...`, `12-...`), facilitando su lectura tanto en la web como en navegadores de archivos locales. Incluye estándares transversales de calidad ([11 - Convenciones de Estilo](11-estilo.md)) y diseño de componentes ([12 - Modularización](12-modularizacion.md)).
+- El directorio `docs/` contiene guías especializadas organizadas secuencialmente con numeración prefijada
+  (`01-...`, `12-...`), facilitando su lectura tanto en la web como en navegadores de archivos locales. Incluye
+  estándares transversales de calidad ([11 - Convenciones de Estilo](11-estilo.md)) y diseño de componentes
+  ([12 - Modularización](12-modularizacion.md)).
 
 ### Scripts Utilitarios (`scripts/`)
-Los scripts deben ser deterministas, ejecutables (`chmod +x`), poseer encabezados bash seguros (`set -euo pipefail`) y permitir su invocación tanto en local por el desarrollador como en los pipelines de CI.
+
+Los scripts deben ser deterministas, ejecutables (`chmod +x`), poseer encabezados bash seguros (`set -euo pipefail`)
+y permitir su invocación tanto en local por el desarrollador como en los pipelines de CI.
 
 ---
 
 ## 3. Invariantes de Higiene Estructural
 
-1. **Cero archivos huérfanos o temporales**: No deben commitearse archivos `.bak`, `.tmp`, notas personales o borradores en la raíz del repositorio.
-2. **Nombres de archivo predecibles**: Todo en minúsculas y separado por guiones medios para scripts y documentación (`mi-documento.md`, `mi-script.sh`), excepto los archivos estándar de GitHub que usan mayúsculas por convención histórica (`README.md`, `LICENSE`, `SECURITY.md`).
-3. **Independencia de compilación**: La documentación en markdown debe ser legible directamente en GitHub y navegadores de texto, sin obligar al usuario a instalar generadores de sitios estáticos pesados (como MkDocs o Docusaurus) a menos que la escala del proyecto lo justifique formalmente.
-4. **Prohibición de emojis en superficies de ejecución**: No incluir emojis en nombres de archivos, scripts, configuraciones ni código fuente; reservados exclusivamente para documentación humana (`README.md`, `docs/`) y notas de versión (véase [11 - Convenciones de Estilo](11-estilo.md)).
-5. **Modularidad y diseño desacoplado**: La estructura física debe reflejar fronteras de responsabilidad bien delimitadas, evitando carpetas cajón de sastre y dependencias circulares (véase [12 - Modularización](12-modularizacion.md)).
+1. **Cero archivos huérfanos o temporales**: No deben commitearse archivos `.bak`, `.tmp`, notas personales
+   o borradores en la raíz del repositorio.
+2. **Nombres de archivo predecibles**: Todo en minúsculas y separado por guiones medios para scripts y
+   documentación (`mi-documento.md`, `mi-script.sh`), excepto los archivos estándar de GitHub que usan
+   mayúsculas por convención histórica (`README.md`, `LICENSE`, `SECURITY.md`).
+3. **Independencia de compilación**: La documentación en markdown debe ser legible directamente en GitHub y
+   navegadores de texto, sin obligar al usuario a instalar generadores de sitios estáticos pesados
+   (como MkDocs o Docusaurus) a menos que la escala del proyecto lo justifique formalmente.
+4. **Prohibición de emojis en superficies de ejecución**: No incluir emojis en nombres de archivos, scripts,
+   configuraciones ni código fuente; reservados exclusivamente para documentación humana (`README.md`, `docs/`)
+   y notas de versión (véase [11 - Convenciones de Estilo](11-estilo.md)).
+5. **Modularidad y diseño desacoplado**: La estructura física debe reflejar fronteras de responsabilidad bien
+   delimitadas, evitando carpetas cajón de sastre y dependencias circulares
+   (véase [12 - Modularización](12-modularizacion.md)).
 
 ---
 

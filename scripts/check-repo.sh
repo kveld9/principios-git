@@ -87,6 +87,7 @@ echo -e "\n${BOLD}2. Git & Environment Configuration${RESET}"
 check_file ".gitignore" true
 check_file ".gitattributes" true
 check_file ".editorconfig" true
+check_file ".markdownlint.yaml" true
 check_file ".releaserc.js.example" true
 
 echo -e "\n${BOLD}3. GitHub Automation & Templates (.github/)${RESET}"

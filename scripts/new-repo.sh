@@ -152,6 +152,7 @@ copy_file() {
 copy_file "${KIT_ROOT}/.editorconfig" "${TARGET_DIR}/.editorconfig"
 copy_file "${KIT_ROOT}/.gitattributes" "${TARGET_DIR}/.gitattributes"
 copy_file "${KIT_ROOT}/.gitignore" "${TARGET_DIR}/.gitignore"
+copy_file "${KIT_ROOT}/.markdownlint.yaml" "${TARGET_DIR}/.markdownlint.yaml"
 copy_file "${KIT_ROOT}/LICENSE" "${TARGET_DIR}/LICENSE"
 copy_file "${KIT_ROOT}/CODE_OF_CONDUCT.md" "${TARGET_DIR}/CODE_OF_CONDUCT.md"
 copy_file "${KIT_ROOT}/SECURITY.md" "${TARGET_DIR}/SECURITY.md"

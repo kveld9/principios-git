@@ -2,7 +2,8 @@
 
 ## Supported Versions
 
-We release patches and security fixes for currently maintained versions. The table below outlines the support status for recent releases:
+We release patches and security fixes for currently maintained versions.
+The table below outlines the support status for recent releases:
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -11,12 +12,14 @@ We release patches and security fixes for currently maintained versions. The tab
 
 ## Reporting a Vulnerability
 
-We take the security of this project seriously. If you discover a security vulnerability, please follow responsible disclosure guidelines. **Do NOT report security vulnerabilities via public GitHub issues, discussions, or pull requests.**
+We take the security of this project seriously. If you discover a security vulnerability, please follow responsible
+disclosure guidelines. **Do NOT report security vulnerabilities via public GitHub issues, discussions, or pull requests.**
 
 ### How to Report
 
 1. **GitHub Private Vulnerability Reporting (Preferred):**
-   If enabled on this repository, navigate to the **Security** tab, click **Advisories**, and select **Report a vulnerability**. This creates a confidential communication channel directly with maintainers.
+   If enabled on this repository, navigate to the **Security** tab, click **Advisories**, and select
+   **Report a vulnerability**. This creates a confidential communication channel directly with maintainers.
 
 2. **Email Disclosure:**
    If private reporting is not accessible, send an email to `security@example.com` (or project maintainers) with the subject:
@@ -25,6 +28,7 @@ We take the security of this project seriously. If you discover a security vulne
 ### Information to Include
 
 Please provide as much information as possible to help us reproduce and resolve the issue quickly:
+
 - Type of issue (e.g., buffer overflow, SQL injection, unauthorized access, cross-site scripting).
 - Full paths of source file(s) related to the manifestation of the issue.
 - The location of the affected source code (tag/branch/commit or direct URL).

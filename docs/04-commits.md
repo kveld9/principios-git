@@ -1,6 +1,8 @@
 # 04 - Convención de Commits y Atomicidad
 
-Los mensajes de commit son la documentación más duradera de un proyecto. El código fuente muestra el estado presente del sistema, pero el historial de commits es el único registro que explica la intención del autor, las alternativas descartadas y el contexto de las decisiones críticas.
+Los mensajes de commit son la documentación más duradera de un proyecto. El código fuente muestra el estado
+presente del sistema, pero el historial de commits es el único registro que explica la intención del autor,
+las alternativas descartadas y el contexto de las decisiones críticas.
 
 Este proyecto sigue estrictamente la especificación **Conventional Commits v1.0.0** y el principio de **atomicidad estricta**.
 
@@ -11,13 +13,19 @@ Este proyecto sigue estrictamente la especificación **Conventional Commits v1.0
 Un commit atómico representa **una única unidad lógica indivisible de cambio**.
 
 ### El Test de Atomicidad
+
 Un commit es atómico si y solo si:
+
 1. **Compila y pasa pruebas**: El repositorio no queda roto si se hace checkout directamente en ese hash.
 2. **Es revertible limpiamente**: Puede revertirse con `git revert <hash>` sin desmantelar código o características no relacionadas.
-3. **Se puede describir en una sola oración sin usar conjunciones**: Si el mensaje necesita decir *"agrega autenticación y arregla padding del botón y actualiza dependencias"*, son al menos tres commits distintos.
+3. **Se puede describir en una sola oración sin usar conjunciones**: Si el mensaje necesita decir
+   *"agrega autenticación y arregla padding del botón y actualiza dependencias"*, son al menos tres commits distintos.
 
 ### Corte Vertical (Vertical Slice)
-Un commit atómico no separa artificialmente el frontend del backend cuando forman parte de la misma funcionalidad. Debe incluir verticalmente:
+
+Un commit atómico no separa artificialmente el frontend del backend cuando forman parte de la misma
+funcionalidad. Debe incluir verticalmente:
+
 - La lógica interna.
 - Las pruebas asociadas.
 - La documentación afectada por ese cambio específico.
@@ -53,7 +61,8 @@ Un commit atómico no separa artificialmente el frontend del backend cuando form
 
 ## 3. Reglas de Estilo para el Mensaje
 
-1. **Idioma Estrictamente en Inglés**: Todo mensaje de commit debe redactarse en inglés técnico. Esto maximiza la interoperabilidad global y permite herramientas automatizadas de release y changelog.
+1. **Idioma Estrictamente en Inglés**: Todo mensaje de commit debe redactarse en inglés técnico. Esto
+   maximiza la interoperabilidad global y permite herramientas automatizadas de release y changelog.
 2. **Modo Imperativo en Tiempo Presente**:
    - Correcto: `fix: handle timeout on remote connection`
    - Incorrecto: `fixed timeout` o `fixing timeouts` o `handles timeout`
@@ -62,9 +71,14 @@ Un commit atómico no separa artificialmente el frontend del backend cuando form
    - Sin punto final en el título.
 4. **Cuerpo Técnico Detallado**:
    - Explica el *por qué* y no solo el *qué*.
-   - Describe efectos secundarios relevantes, restricciones de hardware o razones por las que se descartó una alternativa obvia.
-5. **Cero Atribución de Herramientas**: No contaminar los mensajes con pies automáticos tipo `Co-authored-by: bot` o slogans promocionales de asistentes de IA. El autor y committer deben ser identidades válidas y rastreables.
-6. **Prohibición Estricta de Emojis**: Queda vetado el uso de emojis en títulos, cuerpos o pies de commits (por ejemplo, redactar `feat: add login` en lugar de `feat: 🚀 add login`). Esto asegura compatibilidad con terminales headless, herramientas de diff/patch por email y generadores deterministas de changelog (véase [11 - Convenciones de Estilo](11-estilo.md)).
+   - Describe efectos secundarios relevantes, restricciones de hardware o razones por las que se descartó
+     una alternativa obvia.
+5. **Cero Atribución de Herramientas**: No contaminar los mensajes con pies automáticos tipo `Co-authored-by: bot`
+   o slogans promocionales de asistentes de IA. El autor y committer deben ser identidades válidas y rastreables.
+6. **Prohibición Estricta de Emojis**: Queda vetado el uso de emojis en títulos, cuerpos o pies de commits
+   (por ejemplo, redactar `feat: add login` en lugar de `feat: 🚀 add login`). Esto asegura compatibilidad con
+   terminales headless, herramientas de diff/patch por email y generadores deterministas de changelog
+   (véase [11 - Convenciones de Estilo](11-estilo.md)).
 
 ---
 
@@ -73,11 +87,13 @@ Un commit atómico no separa artificialmente el frontend del backend cuando form
 Cuando un cambio rompe la compatibilidad hacia atrás (requiere incremento de versión MAJOR en SemVer), debe indicarse explícitamente:
 
 ### Opción A: Signo de Exclamación en el Tipo
+
 ```text
 feat(api)!: drop support for deprecated v1 endpoints
 ```
 
 ### Opción B: Pie BREAKING CHANGE
+
 ```text
 feat(auth): require Ed25519 signatures for session tokens
 
@@ -90,11 +106,15 @@ Clients must migrate to Ed25519 or ECDSA P-256 before upgrading.
 ## 5. Ejemplos de Comparación: Malos vs Buenos Commits
 
 ### Ejemplo 1: Corrección de un Bug
+
 - **Malo**:
+
   ```text
   Arreglado el bug raro
   ```
+
 - **Bueno**:
+
   ```text
   fix(http): resolve race condition in websocket keepalive ping
 
@@ -106,10 +126,13 @@ Clients must migrate to Ed25519 or ECDSA P-256 before upgrading.
   ```
 
 ### Ejemplo 2: Actualización de Alcance Múltiple (Anti-Patrón)
+
 - **Malo (Mega-commit)**:
+
   ```text
   feat: finish user profile, fix database bug, update css and clean up code
   ```
+
 - **Bueno (Secuencia Atómica)**:
   - Commit 1: `fix(db): add missing foreign key index on user_sessions`
   - Commit 2: `feat(profile): implement avatar upload endpoint`

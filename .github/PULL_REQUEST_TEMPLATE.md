@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-file MD041 MD013 -->
 ## Summary of Changes
 
 A concise description of the purpose and technical scope of this pull request.

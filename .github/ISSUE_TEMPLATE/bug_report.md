@@ -38,6 +38,7 @@ Provide a minimal code snippet, configuration, or CLI command that reliably trig
 ## Environment
 
 Please provide relevant environment information:
+
 - **OS & Version:** [e.g. Linux Ubuntu 24.04, macOS Sonoma 14.5, Windows 11]
 - **Project Version / Commit Hash:** [e.g. v1.2.0 or commit abc1234]
 - **Toolchain / Runtime Version:** [e.g. Node 20.12, Python 3.12, Go 1.22, Rust 1.78]

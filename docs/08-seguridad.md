@@ -1,8 +1,11 @@
 # 08 - Seguridad, Análisis de Vulnerabilidades y Cadena de Suministro
 
-La seguridad de un repositorio debe ser preventiva y abarcar todo el ciclo de vida del desarrollo: desde la estación de trabajo local del programador hasta los artefactos generados en la nube y distribuidos a los usuarios finales.
+La seguridad de un repositorio debe ser preventiva y abarcar todo el ciclo de vida del desarrollo: desde la
+estación de trabajo local del programador hasta los artefactos generados en la nube y distribuidos a los
+usuarios finales.
 
-Este documento establece los protocolos de seguridad de código, detección continua de secretos con **Gitleaks**, análisis estático automatizado con **CodeQL**, inventario de credenciales y aislamiento de firmas en CI.
+Este documento establece los protocolos de seguridad de código, detección continua de secretos con **Gitleaks**,
+análisis estático automatizado con **CodeQL**, inventario de credenciales y aislamiento de firmas en CI.
 
 ---
 
@@ -10,8 +13,11 @@ Este documento establece los protocolos de seguridad de código, detección cont
 
 La transparencia pública no debe comprometer a los usuarios que ejecutan el software en entornos reales.
 
-1. **Canal Confidencial Exclusivo**: Toda vulnerabilidad de seguridad debe comunicarse a través de los canales privados definidos en [`SECURITY.md`](../SECURITY.md) (preferentemente mediante *GitHub Private Vulnerability Reporting* o correo cifrado a los mantenedores).
-2. **Prohibición de Issues Públicos para Exploits**: Abrir un issue público detallando una vulnerabilidad no parcheada expone a los usuarios a ataques inmediatos.
+1. **Canal Confidencial Exclusivo**: Toda vulnerabilidad de seguridad debe comunicarse a través de los canales
+   privados definidos en [`SECURITY.md`](../SECURITY.md) (preferentemente mediante
+   *GitHub Private Vulnerability Reporting* o correo cifrado a los mantenedores).
+2. **Prohibición de Issues Públicos para Exploits**: Abrir un issue público detallando una vulnerabilidad no
+   parcheada expone a los usuarios a ataques inmediatos.
 3. **Plazos de Respuesta y Remediación**:
    - Acuse de recibo inicial: < 48 horas.
    - Evaluación y confirmación técnica: < 5 días hábiles.
@@ -21,10 +27,13 @@ La transparencia pública no debe comprometer a los usuarios que ejecutan el sof
 
 ## 2. Prevención y Detección Continua de Fugas de Secretos
 
-Una vez que una clave API, contraseña o certificado privado entra al árbol de Git y se empuja a un servidor remoto, **debe considerarse comprometido para siempre**, independientemente de que se elimine en el commit siguiente.
+Una vez que una clave API, contraseña o certificado privado entra al árbol de Git y se empuja a un servidor
+remoto, **debe considerarse comprometido para siempre**, independientemente de que se elimine en el commit siguiente.
 
 ### Escaneo Automatizado en CI con Gitleaks
-El kit provee una implementación activa en [`.github/workflows/gitleaks.yml`](../.github/workflows/gitleaks.yml), que audita cada push a ramas principales (`main`, `dev`) y cada Pull Request:
+
+El kit provee una implementación activa en [`.github/workflows/gitleaks.yml`](../.github/workflows/gitleaks.yml),
+que audita cada push a ramas principales (`main`, `dev`) y cada Pull Request:
 
 ```yaml
 steps:
@@ -41,43 +50,67 @@ steps:
 
 > [!IMPORTANT]
 > **Por qué `fetch-depth: 0` es Mandatorio**:
-> Por defecto, `actions/checkout` descarga únicamente el commit más reciente (`fetch-depth: 1`). Si un atacante o desarrollador comete un secreto en un commit y luego intenta "remediarlo" borrándolo en el siguiente commit del mismo PR, un escaneo superficial no detectará la fuga. `fetch-depth: 0` garantiza que Gitleaks audite todos los deltas del árbol histórico.
+> Por defecto, `actions/checkout` descarga únicamente el commit más reciente (`fetch-depth: 1`). Si un atacante
+> o desarrollador comete un secreto en un commit y luego intenta "remediarlo" borrándolo en el siguiente commit
+> del mismo PR, un escaneo superficial no detectará la fuga. `fetch-depth: 0` garantiza que Gitleaks audite
+> todos los deltas del árbol histórico.
 >
-> **Permisos Mínimos en CI**: Los escáneres que operan en modo PR vía API (`gitleaks-action`) requieren el permiso `pull-requests: read` además de `contents: read` para listar los commits del pull request. El principio de menor privilegio se mantiene estricto al no conceder permisos de escritura (`contents: write`).
+> **Permisos Mínimos en CI**: Los escáneres que operan en modo PR vía API (`gitleaks-action`) requieren el permiso
+> `pull-requests: read` además de `contents: read` para listar los commits del pull request. El principio de
+> menor privilegio se mantiene estricto al no conceder permisos de escritura (`contents: write`).
 
 ### Prevención Local y Push Protection
-- **`.gitignore` Exhaustivo**: El archivo [`.gitignore`](../.gitignore) de este kit excluye automáticamente patrones de secretos habituales (`.env`, `*.pem`, `*.key`, `id_rsa`, etc.).
-- **Push Protection de GitHub**: Habilite en los ajustes de seguridad del repositorio la opción **Secret scanning -> Push protection** para que GitHub bloquee inmediatamente cualquier push que contenga patrones de tokens conocidos (AWS, GitHub, Stripe, Slack, etc.).
+
+- **`.gitignore` Exhaustivo**: El archivo [`.gitignore`](../.gitignore) de este kit excluye automáticamente
+  patrones de secretos habituales (`.env`, `*.pem`, `*.key`, `id_rsa`, etc.).
+- **Push Protection de GitHub**: Habilite en los ajustes de seguridad del repositorio la opción
+  **Secret scanning -> Push protection** para que GitHub bloquee inmediatamente cualquier push que contenga
+  patrones de tokens conocidos (AWS, GitHub, Stripe, Slack, etc.).
 - **Escaneo Local**: Ejecute `gitleaks` en su máquina local antes de crear un commit:
+
   ```bash
   gitleaks detect --source . --verbose
   ```
 
 ### Procedimiento de Emergencia ante Filtración de Secretos
+
 Si accidentalmente se empuja una clave o secreto al repositorio:
-1. **Paso Inmediato: Revocar e Invalidar el Secreto**: Asuma que bots automatizados ya clonaron el secreto. Invalide la credencial en el proveedor de nube inmediatamente. **Este paso es prioritario sobre la limpieza de Git**.
-2. **Purgar el Historial**: Un commit posterior con `git rm .env` **no** borra el archivo del historial previo. Utilice `git-filter-repo` (la herramienta oficial recomendada por Git, reemplazante de `git filter-branch`):
+
+1. **Paso Inmediato: Revocar e Invalidar el Secreto**: Asuma que bots automatizados ya clonaron el secreto.
+   Invalide la credencial en el proveedor de nube inmediatamente. **Este paso es prioritario sobre la
+   limpieza de Git**.
+2. **Purgar el Historial**: Un commit posterior con `git rm .env` **no** borra el archivo del historial previo.
+   Utilice `git-filter-repo` (la herramienta oficial recomendada por Git, reemplazante de `git filter-branch`):
+
    ```bash
    git-filter-repo --path .env --invert-paths
    ```
-3. **Forzar Actualización y Notificar**: Tras reescribir el historial, realizar push forzado coordinado y alertar a los miembros del equipo para que re-clonen o rebasen sus copias locales.
+
+3. **Forzar Actualización y Notificar**: Tras reescribir el historial, realizar push forzado coordinado y alertar
+   a los miembros del equipo para que re-clonen o rebasen sus copias locales.
 
 ---
 
 ## 3. Análisis Estático de Vulnerabilidades con CodeQL
 
-El análisis semántico de código (*SAST*) permite interceptar vulnerabilidades como inyecciones SQL, Cross-Site Scripting (XSS), escalado de privilegios y desreferencia de punteros nulos antes de llegar a producción.
+El análisis semántico de código (*SAST*) permite interceptar vulnerabilidades como inyecciones SQL,
+Cross-Site Scripting (XSS), escalado de privilegios y desreferencia de punteros nulos antes de llegar a producción.
 
 Este kit provee una plantilla de integración en [`.github/workflows/codeql.yml.example`](../.github/workflows/codeql.yml.example).
 
-### Aspectos Clave de CodeQL en el Pipeline:
+### Aspectos Clave de CodeQL en el Pipeline
 
 1. **Escaneo Programado Semanal (`schedule`)**:
-   Las bases de datos de vulnerabilidades (CVEs) se actualizan constantemente. Un flujo que corre semanalmente (ej. lunes a las 06:00 UTC) permite detectar fallos en código que no ha sido modificado recientemente, ante nuevas reglas publicadas por investigadores de seguridad.
+   Las bases de datos de vulnerabilidades (CVEs) se actualizan constantemente. Un flujo que corre semanalmente
+   (ej. lunes a las 06:00 UTC) permite detectar fallos en código que no ha sido modificado recientemente,
+   ante nuevas reglas publicadas por investigadores de seguridad.
 2. **Permisos Restringidos (`security-events: write`)**:
-   El token de GitHub Actions solo necesita permisos para publicar los reportes SARIF resultantes en la interfaz de seguridad del repositorio, manteniendo `contents: read`.
+   El token de GitHub Actions solo necesita permisos para publicar los reportes SARIF resultantes en la
+   interfaz de seguridad del repositorio, manteniendo `contents: read`.
 3. **Soporte Políglota y de Acciones**:
-   CodeQL permite auditar tanto los lenguajes principales del repositorio (`javascript-typescript`, `python`, `go`, `java-kotlin`, `c-cpp`, `csharp`, `ruby`) como las propias acciones de GitHub (`actions`), previniendo vulnerabilidades en los workflows de CI.
+   CodeQL permite auditar tanto los lenguajes principales del repositorio (`javascript-typescript`, `python`,
+   `go`, `java-kotlin`, `c-cpp`, `csharp`, `ruby`) como las propias acciones de GitHub (`actions`),
+   previniendo vulnerabilidades en los workflows de CI.
 
 ---
 
@@ -106,16 +139,22 @@ Un repositorio maduro requiere credenciales protegidas para tareas de publicaci�
 > **Modelo de Amenazas en Entornos de Integración Continua**:
 > Los flujos de trabajo disparados por `pull_request` **nunca deben tener acceso a secretos de producción ni de firma**.
 
-Cuando un usuario envía un Pull Request (especialmente desde un fork público), el código introducido aún no ha sido revisado ni auditado por los mantenedores. Si los secretos de producción estuviesen disponibles en dicho entorno:
+Cuando un usuario envía un Pull Request (especialmente desde un fork público), el código introducido aún no ha
+sido revisado ni auditado por los mantenedores. Si los secretos de producción estuviesen disponibles en dicho entorno:
 
 1. **Exfiltración Directa de Certificados**:
-   Un actor malicioso podría alterar una tarea de compilación en `build.gradle`, `Makefile`, `package.json` o scripts de tests para volcar el contenido de `KEYSTORE_BASE64` o `GPG_PRIVATE_KEY` mediante una petición HTTP externa.
+   Un actor malicioso podría alterar una tarea de compilación en `build.gradle`, `Makefile`, `package.json` o scripts
+   de tests para volcar el contenido de `KEYSTORE_BASE64` o `GPG_PRIVATE_KEY` mediante una petición HTTP externa.
 2. **Generación de Binarios Maliciosos Firmados**:
-   El atacante podría modificar el código fuente para inyectar un troyano o backdoor y forzar al runner de GitHub Actions a firmarlo legítimamente con el certificado oficial del proyecto.
+   El atacante podría modificar el código fuente para inyectar un troyano o backdoor y forzar al runner
+   de GitHub Actions a firmarlo legítimamente con el certificado oficial del proyecto.
 
 #### Solución Robusta: Firmas Descartables (*Ephemeral Keys*)
+
 Para validar en un PR que los pasos de empaquetado y firma funcionan sin comprometer secretos reales:
+
 - El pipeline de PR genera en tiempo de ejecución un almacén de claves descartable (*throwaway*) mediante `keytool`:
+
   ```bash
   keytool -genkey -v \
     -keystore ephemeral.keystore \
@@ -127,6 +166,7 @@ Para validar en un PR que los pasos de empaquetado y firma funcionan sin comprom
     -keypass android \
     -dname "CN=PR-Build, OU=CI, O=Disposable, L=Ephemeral, S=Ephemeral, C=US"
   ```
+
 - El proceso de build compila y firma el artefacto de prueba usando esta clave ficticia.
 - Se verifica la integridad estructural del binario sin exponer credenciales de producción.
 
@@ -137,10 +177,14 @@ Para validar en un PR que los pasos de empaquetado y firma funcionan sin comprom
 La mayoría de las brechas modernas se originan en dependencias transitivas comprometidas (*software supply chain*).
 
 ### Monitoreo Continuo con Dependabot
-Este kit incluye [`.github/dependabot.yml`](../.github/dependabot.yml), configurado para auditar semanalmente acciones de GitHub y manifiestos de paquetes.
+
+Este kit incluye [`.github/dependabot.yml`](../.github/dependabot.yml), configurado para auditar semanalmente
+acciones de GitHub y manifiestos de paquetes.
 
 ### Auditorías Locales Obligatorias
+
 Antes de realizar releases importantes, ejecute las herramientas de análisis de dependencias de su ecosistema:
+
 - **Rust**: `cargo audit`
 - **Node.js**: `npm audit` o `pnpm audit`
 - **Python**: `pip-audit`
@@ -159,13 +203,15 @@ git config --global gpg.format ssh
 git config --global commit.gpgsign true
 ```
 
-Los commits firmados lucirán el distintivo verde **Verified** en la interfaz web de GitHub, impidiendo la falsificación de identidad en entornos colaborativos y garantizando una auditoría forense inalterable.
+Los commits firmados lucirán el distintivo verde **Verified** en la interfaz web de GitHub, impidiendo
+la falsificación de identidad en entornos colaborativos y garantizando una auditoría forense inalterable.
 
 ---
 
 ## 7. Control de Accesos y Gobernanza de Repositorio
 
-La seguridad del código fuente exige aplicar el principio de menor privilegio (*least privilege*) tanto en la infraestructura de CI como en la asignación de permisos humanos y accesos automatizados a nivel de organización.
+La seguridad del código fuente exige aplicar el principio de menor privilegio (*least privilege*) tanto en la
+infraestructura de CI como en la asignación de permisos humanos y accesos automatizados a nivel de organización.
 
 ### Roles de Repositorio en Organizaciones
 
@@ -180,12 +226,21 @@ GitHub provee cinco niveles de roles estándar para miembros y colaboradores ext
 | **Admin** | Acceso total: gestión de colaboradores, cambio de visibilidad, borrado del repositorio y configuración de reglas de seguridad/rulesets. | Responsables de infraestructura, seguridad o dueños directos del componente (restringido al mínimo estricto). |
 
 > [!NOTE]
-> - **Permisos Base de Organización (*Base Permissions*)**: Configure los permisos base de la organización en **Read** o **None** (nunca *Write*). Todo acceso adicional debe asignarse explícitamente mediante equipos (*Teams*).
-> - **Roles Custom (GitHub Enterprise)**: Para organizaciones con planes Enterprise, defina roles a la medida si un equipo necesita capacidades puntuales (por ejemplo, gestionar solo variables de entorno o revisar alertas de seguridad) sin escalar a *Admin*.
-> - **Owners de Organización**: Tienen privilegios de administrador implícitos en todos los repositorios; su cantidad debe mantenerse en el mínimo necesario con autenticación de dos factores (2FA) mandatoria.
+>
+> - **Permisos Base de Organización (*Base Permissions*)**: Configure los permisos base de la organización
+>   en **Read** o **None** (nunca *Write*). Todo acceso adicional debe asignarse explícitamente mediante
+>   equipos (*Teams*).
+> - **Roles Custom (GitHub Enterprise)**: Para organizaciones con planes Enterprise, defina roles a la medida
+>   si un equipo necesita capacidades puntuales (por ejemplo, gestionar solo variables de entorno o revisar
+>   alertas de seguridad) sin escalar a *Admin*.
+> - **Owners de Organización**: Tienen privilegios de administrador implícitos en todos los repositorios;
+>   su cantidad debe mantenerse en el mínimo necesario con autenticación de dos factores (2FA) mandatoria.
 
 ### Gobernanza con GitHub Repository Rulesets
-Para garantizar que las restricciones sobre ramas críticas y tags de release sean consistentes, auditables y versionadas, utilice **Repository Rulesets** en lugar de las branch protections clásicas:
+
+Para garantizar que las restricciones sobre ramas críticas y tags de release sean consistentes, auditables
+y versionadas, utilice **Repository Rulesets** en lugar de las branch protections clásicas:
+
 - Permiten definir políticas transversales sobre múltiples ramas y tags en una única especificación declarativa.
 - Soportan el modo **`evaluate`** para simular el impacto de nuevas restricciones sin bloquear el trabajo activo del equipo.
 - Permiten auditoría granular de actores exentos (*bypass list*) por equipo o rol.
@@ -193,21 +248,34 @@ Para garantizar que las restricciones sobre ramas críticas y tags de release se
 Consulte la plantilla de especificación lista para usar en [`.github/settings.example.yml`](../.github/settings.example.yml).
 
 ### Gestión Crítica de Deploy Keys y Credenciales de Máquina
-Las **Deploy Keys** son claves SSH registradas a nivel de repositorio para permitir operaciones automatizadas de lectura o escritura (por ejemplo, en servidores de despliegue o sincronización).
+
+Las **Deploy Keys** son claves SSH registradas a nivel de repositorio para permitir operaciones automatizadas
+de lectura o escritura (por ejemplo, en servidores de despliegue o sincronización).
 
 > [!WARNING]
-> **Vulnerabilidad de Persistencia**: Las *Deploy Keys* son credenciales vinculadas al repositorio, no a la cuenta de usuario que las añadió. Si un desarrollador o administrador abandona la organización o el proyecto, **las deploy keys que configuró continúan funcionando de forma indefinida**.
+> **Vulnerabilidad de Persistencia**: Las *Deploy Keys* son credenciales vinculadas al repositorio, no a la cuenta
+> de usuario que las añadió. Si un desarrollador o administrador abandona la organización o el proyecto,
+> **las deploy keys que configuró continúan funcionando de forma indefinida**.
 
 **Protocolo de Gestión Segura de Deploy Keys**:
-1. **Acceso de Solo Lectura por Defecto**: Salvo que la clave deba realizar pushes directos (altamente desaconsejado), mantenga desmarcada la opción *Allow write access*.
+
+1. **Acceso de Solo Lectura por Defecto**: Salvo que la clave deba realizar pushes directos (altamente
+   desaconsejado), mantenga desmarcada la opción *Allow write access*.
 2. **Inventario e Identificación Clara**: Asigne un título descriptivo que documente el servidor y propósito (ej. `deploy-read-prod-cluster-01`).
-3. **Rotación Obligatoria ante Cambios de Personal**: Audite e invalide de inmediato cualquier deploy key o token de servicio cuando un integrante con privilegios administrativos o acceso al servidor correspondiente deje la organización.
-4. **Preferencia por GitHub Apps o OIDC**: Para pipelines modernos de CI/CD, reemplace las deploy keys estáticas por autenticación OIDC efímera o GitHub Apps con permisos acotados.
+3. **Rotación Obligatoria ante Cambios de Personal**: Audite e invalide de inmediato cualquier deploy key o token
+   de servicio cuando un integrante con privilegios administrativos o acceso al servidor correspondiente deje
+   la organización.
+4. **Preferencia por GitHub Apps o OIDC**: Para pipelines modernos de CI/CD, reemplace las deploy keys
+   estáticas por autenticación OIDC efímera o GitHub Apps con permisos acotados.
 
 ### Auditoría Periódica de Accesos
-1. **Revisión Trimestral de Membresías**: Audite la lista de colaboradores directos, equipos con acceso y cuentas de servicio externas.
+
+1. **Revisión Trimestral de Membresías**: Audite la lista de colaboradores directos, equipos con acceso
+   y cuentas de servicio externas.
 2. **Remoción de Colaboradores Externos Inactivos**: Revoque accesos huérfanos de contratistas o proyectos finalizados.
-3. **Auditoría de Tokens de Acceso Personal (PATs)**: Prohíba el uso de PATs clásicos personales en automatizaciones compartidas; exija Fine-Grained Personal Access Tokens con caducidad obligatoria (máximo 90 días) o GitHub Apps organizacionales.
+3. **Auditoría de Tokens de Acceso Personal (PATs)**: Prohíba el uso de PATs clásicos personales en automatizaciones
+   compartidas; exija Fine-Grained Personal Access Tokens con caducidad obligatoria (máximo 90 días) o
+   GitHub Apps organizacionales.
 
 ---
 
