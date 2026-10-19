@@ -87,9 +87,13 @@ echo -e "\n${BOLD}2. Git & Environment Configuration${RESET}"
 check_file ".gitignore" true
 check_file ".gitattributes" true
 check_file ".editorconfig" true
+check_file ".releaserc.js.example" true
 
 echo -e "\n${BOLD}3. GitHub Automation & Templates (.github/)${RESET}"
 check_file ".github/workflows/ci.yml" true
+check_file ".github/workflows/release.yml.example" true
+check_file ".github/workflows/gitleaks.yml" true
+check_file ".github/workflows/codeql.yml.example" true
 check_file ".github/dependabot.yml" true
 check_file ".github/ISSUE_TEMPLATE/bug_report.md" true
 check_file ".github/ISSUE_TEMPLATE/feature_request.md" true

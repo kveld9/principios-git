@@ -1,0 +1,83 @@
+// Generic configuration for semantic-release.
+// Rename to .releaserc.js or release.config.js to activate.
+//
+// Plugins required (install via devDependencies or semantic-release-action):
+// - @semantic-release/commit-analyzer
+// - @semantic-release/release-notes-generator
+// - @semantic-release/changelog
+// - @semantic-release/git
+// - @semantic-release/github
+
+module.exports = {
+  branches: [
+    'main',
+    {
+      name: 'dev',
+      prerelease: 'experimental',
+    },
+  ],
+  plugins: [
+    [
+      '@semantic-release/commit-analyzer',
+      {
+        preset: 'conventionalcommits',
+        releaseRules: [
+          // Types triggering releases
+          { breaking: true, release: 'major' },
+          { type: 'feat', release: 'minor' },
+          { type: 'fix', release: 'patch' },
+          { type: 'perf', release: 'patch' },
+          { type: 'revert', release: 'patch' },
+
+          // Common scopes and types ignored to avoid unnecessary release noise
+          { scope: 'docs', release: false },
+          { scope: 'ci', release: false },
+          { scope: 'test', release: false },
+          { scope: 'tooling', release: false },
+          { scope: 'scripts', release: false },
+          { scope: 'chore', release: false },
+          { type: 'docs', release: false },
+          { type: 'ci', release: false },
+          { type: 'test', release: false },
+          { type: 'chore', release: false },
+          { type: 'style', release: false },
+        ],
+      },
+    ],
+    [
+      '@semantic-release/release-notes-generator',
+      {
+        preset: 'conventionalcommits',
+      },
+    ],
+    [
+      '@semantic-release/changelog',
+      {
+        changelogFile: 'CHANGELOG.md',
+      },
+    ],
+    [
+      '@semantic-release/git',
+      {
+        assets: [
+          'CHANGELOG.md',
+          'package.json',
+          'package-lock.json',
+          'version.txt',
+        ],
+        message: 'chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
+      },
+    ],
+    [
+      '@semantic-release/github',
+      {
+        assets: [
+          {
+            path: 'dist/**',
+            label: 'Distribution Assets',
+          },
+        ],
+      },
+    ],
+  ],
+};

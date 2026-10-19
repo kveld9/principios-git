@@ -1,8 +1,8 @@
-# 08 - Seguridad y Gestión de Vulnerabilidades
+# 08 - Seguridad, Análisis de Vulnerabilidades y Cadena de Suministro
 
-La seguridad de un repositorio debe ser preventiva y abarcar todo el ciclo de vida del desarrollo: desde la estación de trabajo local del programador hasta los artefactos generados en la nube.
+La seguridad de un repositorio debe ser preventiva y abarcar todo el ciclo de vida del desarrollo: desde la estación de trabajo local del programador hasta los artefactos generados en la nube y distribuidos a los usuarios finales.
 
-Este documento establece los protocolos de seguridad de código, prevención de fugas y respuesta ante incidentes.
+Este documento establece los protocolos de seguridad de código, detección continua de secretos con **Gitleaks**, análisis estático automatizado con **CodeQL**, inventario de credenciales y aislamiento de firmas en CI.
 
 ---
 
@@ -19,16 +19,35 @@ La transparencia pública no debe comprometer a los usuarios que ejecutan el sof
 
 ---
 
-## 2. Prevención y Detección de Fugas de Secretos
+## 2. Prevención y Detección Continua de Fugas de Secretos
 
 Una vez que una clave API, contraseña o certificado privado entra al árbol de Git y se empuja a un servidor remoto, **debe considerarse comprometido para siempre**, independientemente de que se elimine en el commit siguiente.
 
-### Mecanismos de Prevención
+### Escaneo Automatizado en CI con Gitleaks
+El kit provee una implementación activa en [`.github/workflows/gitleaks.yml`](../.github/workflows/gitleaks.yml), que audita cada push a ramas principales (`main`, `dev`) y cada Pull Request:
+
+```yaml
+steps:
+  - name: Check out repository with full history
+    uses: actions/checkout@v4
+    with:
+      fetch-depth: 0 # OBLIGATORIO: descarga todo el historial de Git
+
+  - name: Run Gitleaks scanner
+    uses: gitleaks/gitleaks-action@v2
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+> [!IMPORTANT]
+> **Por qué `fetch-depth: 0` es Mandatorio**:
+> Por defecto, `actions/checkout` descarga únicamente el commit más reciente (`fetch-depth: 1`). Si un atacante o desarrollador comete un secreto en un commit y luego intenta "remediarlo" borrándolo en el siguiente commit del mismo PR, un escaneo superficial no detectará la fuga. `fetch-depth: 0` garantiza que Gitleaks audite todos los deltas del árbol histórico.
+
+### Prevención Local y Push Protection
 - **`.gitignore` Exhaustivo**: El archivo [`.gitignore`](../.gitignore) de este kit excluye automáticamente patrones de secretos habituales (`.env`, `*.pem`, `*.key`, `id_rsa`, etc.).
 - **Push Protection de GitHub**: Habilite en los ajustes de seguridad del repositorio la opción **Secret scanning -> Push protection** para que GitHub bloquee inmediatamente cualquier push que contenga patrones de tokens conocidos (AWS, GitHub, Stripe, Slack, etc.).
-- **Escaneo Local con Pre-commit**: Se recomienda instalar utilidades como `gitleaks` o `detect-secrets` en la máquina local para interceptar credenciales antes del commit:
+- **Escaneo Local**: Ejecute `gitleaks` en su máquina local antes de crear un commit:
   ```bash
-  # Escanear el repositorio completo en busca de secretos históricos
   gitleaks detect --source . --verbose
   ```
 
@@ -43,9 +62,77 @@ Si accidentalmente se empuja una clave o secreto al repositorio:
 
 ---
 
-## 3. Seguridad de Dependencias y Cadena de Suministro
+## 3. Análisis Estático de Vulnerabilidades con CodeQL
 
-La mayoría de las brechas modernas no se originan en el código propio, sino en dependencias transitivas comprometidas (*supply chain attacks*).
+El análisis semántico de código (*SAST*) permite interceptar vulnerabilidades como inyecciones SQL, Cross-Site Scripting (XSS), escalado de privilegios y desreferencia de punteros nulos antes de llegar a producción.
+
+Este kit provee una plantilla de integración en [`.github/workflows/codeql.yml.example`](../.github/workflows/codeql.yml.example).
+
+### Aspectos Clave de CodeQL en el Pipeline:
+
+1. **Escaneo Programado Semanal (`schedule`)**:
+   Las bases de datos de vulnerabilidades (CVEs) se actualizan constantemente. Un flujo que corre semanalmente (ej. lunes a las 06:00 UTC) permite detectar fallos en código que no ha sido modificado recientemente, ante nuevas reglas publicadas por investigadores de seguridad.
+2. **Permisos Restringidos (`security-events: write`)**:
+   El token de GitHub Actions solo necesita permisos para publicar los reportes SARIF resultantes en la interfaz de seguridad del repositorio, manteniendo `contents: read`.
+3. **Soporte Políglota y de Acciones**:
+   CodeQL permite auditar tanto los lenguajes principales del repositorio (`javascript-typescript`, `python`, `go`, `java-kotlin`, `c-cpp`, `csharp`, `ruby`) como las propias acciones de GitHub (`actions`), previniendo vulnerabilidades en los workflows de CI.
+
+---
+
+## 4. Inventario de Secretos y Aislamiento de Firmas en Pull Requests
+
+Un repositorio maduro requiere credenciales protegidas para tareas de publicación, firma y notificaciones.
+
+### Inventario Estándar de Secretos
+
+| Categoría | Nombre del Secreto | Uso y Restricción |
+| :--- | :--- | :--- |
+| **Firma Android / Java** | `KEYSTORE_BASE64` | Keystore binario codificado en Base64 para firmar APKs/JARs. |
+| **Firma Android / Java** | `KEYSTORE_PASSWORD` | Contraseña maestra del archivo keystore. |
+| **Firma Android / Java** | `KEY_ALIAS` | Alias de la llave privada dentro del almacén. |
+| **Firma Android / Java** | `KEY_PASSWORD` | Contraseña individual de la llave privada. |
+| **Firma Criptográfica GPG** | `GPG_PRIVATE_KEY` | Clave privada GPG para firma de tags o tarballs de binarios. |
+| **Firma Criptográfica GPG** | `GPG_PASSPHRASE` | Frase de paso para desbloquear la clave privada GPG. |
+| **Notificaciones** | `TELEGRAM_BOT_TOKEN` | Token para alertas de despliegue a canales o chats. |
+| **Notificaciones** | `TELEGRAM_CHAT_ID` | Identificador de chat o canal receptor de alertas. |
+
+---
+
+### Por qué los PRs Jamás Deben Recibir Secretos de Firma
+
+> [!CAUTION]
+> **Modelo de Amenazas en Entornos de Integración Continua**:
+> Los flujos de trabajo disparados por `pull_request` **nunca deben tener acceso a secretos de producción ni de firma**.
+
+Cuando un usuario envía un Pull Request (especialmente desde un fork público), el código introducido aún no ha sido revisado ni auditado por los mantenedores. Si los secretos de producción estuviesen disponibles en dicho entorno:
+
+1. **Exfiltración Directa de Certificados**:
+   Un actor malicioso podría alterar una tarea de compilación en `build.gradle`, `Makefile`, `package.json` o scripts de tests para volcar el contenido de `KEYSTORE_BASE64` o `GPG_PRIVATE_KEY` mediante una petición HTTP externa.
+2. **Generación de Binarios Maliciosos Firmados**:
+   El atacante podría modificar el código fuente para inyectar un troyano o backdoor y forzar al runner de GitHub Actions a firmarlo legítimamente con el certificado oficial del proyecto.
+
+#### Solución Robusta: Firmas Descartables (*Ephemeral Keys*)
+Para validar en un PR que los pasos de empaquetado y firma funcionan sin comprometer secretos reales:
+- El pipeline de PR genera en tiempo de ejecución un almacén de claves descartable (*throwaway*) mediante `keytool`:
+  ```bash
+  keytool -genkey -v \
+    -keystore ephemeral.keystore \
+    -alias ephemeral \
+    -keyalg RSA \
+    -keysize 2048 \
+    -validity 1 \
+    -storepass android \
+    -keypass android \
+    -dname "CN=PR-Build, OU=CI, O=Disposable, L=Ephemeral, S=Ephemeral, C=US"
+  ```
+- El proceso de build compila y firma el artefacto de prueba usando esta clave ficticia.
+- Se verifica la integridad estructural del binario sin exponer credenciales de producción.
+
+---
+
+## 5. Seguridad de Dependencias y Cadena de Suministro
+
+La mayoría de las brechas modernas se originan en dependencias transitivas comprometidas (*software supply chain*).
 
 ### Monitoreo Continuo con Dependabot
 Este kit incluye [`.github/dependabot.yml`](../.github/dependabot.yml), configurado para auditar semanalmente acciones de GitHub y manifiestos de paquetes.
@@ -59,9 +146,9 @@ Antes de realizar releases importantes, ejecute las herramientas de análisis de
 
 ---
 
-## 4. Integridad de Autoría: Commits Firmados (GPG / SSH)
+## 6. Integridad de Autoría: Commits Firmados (GPG / SSH)
 
-Para garantizar que un commit fue efectivamente creado por quien dice ser (y no suplantado mediante `git config user.name`), se recomienda firmar criptográficamente los commits utilizando claves SSH o GPG:
+Para certificar que un commit proviene del autor legítimo y no fue suplantado alterando `git config user.name`:
 
 ```bash
 # Configurar Git para firmar con clave SSH moderna
@@ -70,7 +157,7 @@ git config --global gpg.format ssh
 git config --global commit.gpgsign true
 ```
 
-Los commits firmados lucirán el distintivo verde **Verified** en la interfaz web de GitHub, impidiendo la falsificación de identidad en entornos corporativos o proyectos de código abierto de alto impacto.
+Los commits firmados lucirán el distintivo verde **Verified** en la interfaz web de GitHub, impidiendo la falsificación de identidad en entornos colaborativos y garantizando una auditoría forense inalterable.
 
 ---
 

@@ -40,7 +40,7 @@ Indispensable para repositorios colaborativos, equipos de ingeniería o proyecto
 
 ---
 
-## Nivel 3: Avanzado / Producción Crítica (Gobernanza y Hardening)
+## Nivel 3: Avanzado / Producción Crítica (Gobernanza, Release y Cadena de Suministro)
 
 Requerido para sistemas en producción, infraestructura crítica, librerías con alto tráfico o código institucional.
 
@@ -50,12 +50,22 @@ Requerido para sistemas en producción, infraestructura crítica, librerías con
   - [ ] Status checks de CI aprobados obligatoriamente antes de autorizar el merge.
   - [ ] Historial lineal estricto (bloqueo de merge commits desordenados; uso obligatorio de Squash o Rebase).
   - [ ] Reglas aplicadas de forma estricta a administradores (`enforce_admins: true`).
+- [ ] **Protección de Etiquetas (`v*`)**: Regla de tag protection configurada para impedir sobreescritura o borrado de versiones.
+- [ ] **Detección Continua de Fuga de Secretos (`.github/workflows/gitleaks.yml`)**: Escaneo activo en CI con `fetch-depth: 0` en push y PRs.
+- [ ] **Análisis Estático Automatizado (`.github/workflows/codeql.yml.example`)**: Escaneo semanal programado y en PRs con CodeQL (SARIF upload, `security-events: write`).
 - [ ] **Auditoría Continua de Dependencias (`.github/dependabot.yml`)**: Actualizaciones automatizadas semanales de GitHub Actions y ecosistemas de paquetes.
 - [ ] **Asignación de Responsabilidades (`.github/CODEOWNERS`)**: Asignación automática de revisores por ruta, arquitectura o componente crítico.
-- [ ] **Protección contra Fuga de Secretos**: *Secret scanning* y *Push protection* de GitHub habilitados a nivel de repositorio u organización.
+- [ ] **Pipeline de Release Automatizado**:
+  - [ ] Implementación de variante por artefactos con SemVer dinámico ([`.github/workflows/release.yml.example`](.github/workflows/release.yml.example)) o Semantic-Release ([`.releaserc.js.example`](.releaserc.js.example)).
+  - [ ] Permisos mínimos de trabajo (`contents: write`, `id-token: write`, `attestations: write`).
+  - [ ] Concurrencia con `cancel-in-progress: false` para evitar publicaciones parciales.
+- [ ] **Integridad Criptográfica de Artefactos**:
+  - [ ] Generación automática de sumas `SHA-256`, `SHA-512` y manifiesto unificado `SHA256SUMS.txt` compatible con `sha256sum -c`.
+  - [ ] Atestación de procedencia de compilación Sigstore / in-toto (`actions/attest-build-provenance`).
+- [ ] **Aislamiento Estricto de Firmas**:
+  - [ ] Secretos de producción (`KEYSTORE_*`, `GPG_*`) restringidos a ramas protegidas / ambientes aprobados.
+  - [ ] Pruebas de compilación en PRs ejecutadas con claves efímeras descartables generadas con `keytool`.
 - [ ] **Commits Criptográficamente Firmados**: Configuración de firmas SSH/GPG para autores en producción (*Verified Commits*).
-- [ ] **Registro de Cambios (`CHANGELOG.md`)**: Mantenido bajo el estándar *Keep a Changelog* o generado automáticamente mediante *Conventional Commits*.
-- [ ] **Etiquetado Inmutable (Releases)**: Versiones publicadas mediante etiquetas anotadas (`git tag -a vX.Y.Z`) acompañadas de sumas de verificación `SHA256SUMS` para descargas binarias.
 
 ---
 
@@ -66,4 +76,4 @@ Requerido para sistemas en producción, infraestructura crítica, librerías con
 | **0 / 3** | Repositorio improvisado, sin garantías legales ni técnicas | ⚠️ Crítico / Inseguro |
 | **Nivel 1 Completo** | Base legal y estructural mínima cubierta | 🟢 Aceptable (Personal) |
 | **Nivel 2 Completo** | Repositorio profesional apto para equipos y colaboración | 🚀 Profesional / Saludable |
-| **Nivel 3 Completo** | Estándar de ingeniería de clase empresarial | 🛡️ Blindado / Enterprise |
+| **Nivel 3 Completo** | Estándar de ingeniería y cadena de suministro blindado | 🛡️ Blindado / Enterprise |
