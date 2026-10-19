@@ -1,0 +1,65 @@
+# Checklist de Adopción de Estándares de Repositorio
+
+Esta lista de verificación condensada permite auditar el nivel de madurez y cumplimiento técnico de cualquier repositorio en GitHub. Puede imprimirse o utilizarse como issue de seguimiento al migrar repositorios existentes.
+
+---
+
+## Nivel 1: Mínimo Indispensable (Línea Base Legal y Estructural)
+
+Este nivel es el requisito mínimo absoluto antes de publicar o compartir cualquier repositorio de código.
+
+- [ ] **Licencia Válida (`LICENSE`)**: Archivo presente en la raíz; tipo de licencia elegido conscientemente y marcadores de posición `[YEAR]` y `[OWNER]` sustituidos.
+- [ ] **Portal del Proyecto (`README.md`)**: Describe qué problema resuelve el software, cómo se instala en local y cómo se ejecuta en menos de 5 minutos.
+- [ ] **Exclusión de Basura y Secretos (`.gitignore`)**: Reglas completas que impiden subir binarios, entornos virtuales, carpetas de dependencias (`node_modules/`, `target/`), logs y archivos de secretos (`.env`).
+- [ ] **Normalización de Saltos de Línea (`.gitattributes`)**: Regla `* text=auto eol=lf` activa para evitar conflictos de fin de línea entre sistemas operativos.
+- [ ] **Consistencia en Editores (`.editorconfig`)**: Configuración estandarizada de sangrías, codificación UTF-8 e inserción de salto de línea al final de archivo.
+- [ ] **Rama Principal Canónica**: La rama por defecto se llama `main` (no `master` ni ramas divergentes).
+
+---
+
+## Nivel 2: Recomendado para Colaboración y Calidad (Salud del Repositorio)
+
+Indispensable para repositorios colaborativos, equipos de ingeniería o proyectos abiertos a contribuciones externas.
+
+- [ ] **Guía de Contribución (`CONTRIBUTING.md`)**: Pasos técnicos claros para compilar el proyecto, normas de estilo, convención de nombres de rama y requisitos de pruebas.
+- [ ] **Política de Seguridad (`SECURITY.md`)**: Canal privado y directo para reportar vulnerabilidades sin abrir issues públicos de día cero.
+- [ ] **Código de Conducta (`CODE_OF_CONDUCT.md`)**: Estándar de convivencia formal (Contributor Covenant) con canal de contacto definido para resolución de conflictos.
+- [ ] **Plantillas de Incidencias (`.github/ISSUE_TEMPLATE/`)**:
+  - [ ] `bug_report.md`: Exige pasos de reproducción, comportamiento esperado/real y versiones del entorno.
+  - [ ] `feature_request.md`: Exige justificación de la necesidad técnica, diseño preliminar y casos de uso.
+- [ ] **Plantilla de Pull Request (`.github/PULL_REQUEST_TEMPLATE.md`)**: Lista de control previa que obliga al autor a verificar atomicidad, pruebas y documentación antes de solicitar revisión.
+- [ ] **Pipeline de CI Básico (`.github/workflows/ci.yml`)**:
+  - [ ] Permisos restringidos a solo lectura (`permissions: contents: read`).
+  - [ ] Linteo de código/documentación automatizado.
+  - [ ] Ejecución de pruebas unitarias en cada push y PR.
+- [ ] **Limpieza de Ramas**: Opción de GitHub `Automatically delete head branches` activada.
+
+---
+
+## Nivel 3: Avanzado / Producción Crítica (Gobernanza y Hardening)
+
+Requerido para sistemas en producción, infraestructura crítica, librerías con alto tráfico o código institucional.
+
+- [ ] **Protección Estricta de Rama `main`**:
+  - [ ] Prohibido el push directo (todo entra vía Pull Request).
+  - [ ] Mínimo 1 aprobación humana obligatoria.
+  - [ ] Status checks de CI aprobados obligatoriamente antes de autorizar el merge.
+  - [ ] Historial lineal estricto (bloqueo de merge commits desordenados; uso obligatorio de Squash o Rebase).
+  - [ ] Reglas aplicadas de forma estricta a administradores (`enforce_admins: true`).
+- [ ] **Auditoría Continua de Dependencias (`.github/dependabot.yml`)**: Actualizaciones automatizadas semanales de GitHub Actions y ecosistemas de paquetes.
+- [ ] **Asignación de Responsabilidades (`.github/CODEOWNERS`)**: Asignación automática de revisores por ruta, arquitectura o componente crítico.
+- [ ] **Protección contra Fuga de Secretos**: *Secret scanning* y *Push protection* de GitHub habilitados a nivel de repositorio u organización.
+- [ ] **Commits Criptográficamente Firmados**: Configuración de firmas SSH/GPG para autores en producción (*Verified Commits*).
+- [ ] **Registro de Cambios (`CHANGELOG.md`)**: Mantenido bajo el estándar *Keep a Changelog* o generado automáticamente mediante *Conventional Commits*.
+- [ ] **Etiquetado Inmutable (Releases)**: Versiones publicadas mediante etiquetas anotadas (`git tag -a vX.Y.Z`) acompañadas de sumas de verificación `SHA256SUMS` para descargas binarias.
+
+---
+
+## Matriz Rápida de Evaluación
+
+| Nivel Alcanzado | Estado del Repositorio | Calificación |
+| :--- | :--- | :--- |
+| **0 / 3** | Repositorio improvisado, sin garantías legales ni técnicas | ⚠️ Crítico / Inseguro |
+| **Nivel 1 Completo** | Base legal y estructural mínima cubierta | 🟢 Aceptable (Personal) |
+| **Nivel 2 Completo** | Repositorio profesional apto para equipos y colaboración | 🚀 Profesional / Saludable |
+| **Nivel 3 Completo** | Estándar de ingeniería de clase empresarial | 🛡️ Blindado / Enterprise |

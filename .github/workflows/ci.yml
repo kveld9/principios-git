@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Principle of least privilege: explicitly restrict default token permissions to read-only
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  standards:
+    name: Repository Standards & Integrity Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify executable permissions on scripts
+        run: |
+          test -x scripts/check-repo.sh || { echo "::error::scripts/check-repo.sh is not executable (fix: git update-index --chmod=+x scripts/check-repo.sh)" >&2; exit 1; }
+          test -x scripts/new-repo.sh || { echo "::error::scripts/new-repo.sh is not executable (fix: git update-index --chmod=+x scripts/new-repo.sh)" >&2; exit 1; }
+
+      - name: Run Repository Standards Audit
+        run: ./scripts/check-repo.sh
+
+  lint-markdown:
+    name: Markdown Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Lint Markdown Files
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: |
+            **/*.md
+            !node_modules
