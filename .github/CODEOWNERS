@@ -1,0 +1,11 @@
+# GitHub CODEOWNERS Configuration
+#
+# Global code ownership specification for this repository.
+# When adopting this kit via scripts/new-repo.sh, the owner username
+# is automatically substituted with the adopting owner handle.
+#
+# Syntax reference:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default codeowner for all files across the repository
+* @kveld9

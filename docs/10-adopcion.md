@@ -160,6 +160,25 @@ de primer nivel que abarca desde la higiene de código hasta la publicación seg
 
 ---
 
+## 9. Caso Práctico y Dogfooding en Este Repositorio
+
+Este repositorio aplica su propio kit de estándares de forma integral (*dogfooding*):
+
+- **Visibilidad pública**: Configurado como repositorio público en GitHub para habilitar las capacidades
+  completas de Repository Rulesets y protecciones avanzadas sin restricciones de plan.
+- **`CODEOWNERS` real**: Posee un archivo `.github/CODEOWNERS` activo (`* @kveld9`) que define la propiedad
+  técnica directa del repositorio, mientras que `scripts/new-repo.sh` sustituye automáticamente dicho handle
+  por el propietario adoptante al instanciar nuevos proyectos.
+- **`CHANGELOG.md` activo**: Mantiene un registro de cambios histórico estructurado bajo el estándar
+  *Keep a Changelog* y versionado semántico (SemVer).
+- **Ruleset mínimo aplicado**: Implementa un subconjunto pragmático de las especificaciones descritas en
+  [`.github/settings.example.yml`](../.github/settings.example.yml). Al tratarse de un repositorio unipersonal
+  con autor único, el ruleset activo prioriza la inmutabilidad de tags (`refs/tags/v*`), la linealidad del
+  historial y la ejecución de checks de CI/Gitleaks, permitiendo pushes directos a la rama principal sin exigir
+  la apertura de Pull Requests obligatorios para cada cambio.
+
+---
+
 ## Navegación
 
 - Anterior: [09 - Guía de Licencias de Software](09-licencias.md)

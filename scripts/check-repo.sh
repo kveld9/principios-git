@@ -99,6 +99,7 @@ check_file ".github/dependabot.yml" true
 check_file ".github/ISSUE_TEMPLATE/bug_report.md" true
 check_file ".github/ISSUE_TEMPLATE/feature_request.md" true
 check_file ".github/PULL_REQUEST_TEMPLATE.md" true
+check_file ".github/CODEOWNERS" true
 check_file ".github/CODEOWNERS.example" false
 check_file ".github/settings.example.yml" false
 

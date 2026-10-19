@@ -108,7 +108,7 @@ Requerido para sistemas en producción, infraestructura crítica, librerías con
 
 | Nivel Alcanzado | Estado del Repositorio | Calificación |
 | :--- | :--- | :--- |
-| **0 / 3** | Repositorio improvisado, sin garantías legales ni técnicas | ⚠️ Crítico / Inseguro |
-| **Nivel 1 Completo** | Base legal y estructural mínima cubierta | 🟢 Aceptable (Personal) |
-| **Nivel 2 Completo** | Repositorio profesional apto para equipos y colaboración | 🚀 Profesional / Saludable |
-| **Nivel 3 Completo** | Estándar de ingeniería y cadena de suministro blindado | 🛡️ Blindado / Enterprise |
+| **0 / 3** | Repositorio improvisado, sin garantías legales ni técnicas | Crítico / Inseguro |
+| **Nivel 1 Completo** | Base legal y estructural mínima cubierta | Aceptable (Personal) |
+| **Nivel 2 Completo** | Repositorio profesional apto para equipos y colaboración | Profesional / Saludable |
+| **Nivel 3 Completo** | Estándar de ingeniería y cadena de suministro blindado | Blindado / Enterprise |

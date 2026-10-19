@@ -10,24 +10,25 @@ externas.
 
 ---
 
-## 🗺️ Mapa del Kit
+## Mapa del Kit
 
 ```text
 .
-├── 📄 Licencias y Gobernanza
+├── Licencias y Gobernanza
 │   ├── LICENSE                       # Licencia MIT base con placeholders
+│   ├── CHANGELOG.md                  # Registro de cambios histórico (Keep a Changelog / SemVer)
 │   ├── CODE_OF_CONDUCT.md            # Código de conducta (Contributor Covenant v2.1)
 │   ├── SECURITY.md                   # Política de divulgación responsable de vulnerabilidades
 │   ├── CONTRIBUTING.md               # Guía técnica de contribución para desarrolladores
 │   └── CHECKLIST.md                  # Lista de control imprimible (Base / Colaboración / Release)
 │
-├── ⚙️ Configuración del Entorno
+├── Configuración del Entorno
 │   ├── .editorconfig                 # Reglas consistentes de indentación, UTF-8 y finales de línea
 │   ├── .gitattributes                # Normalización forzada a LF y metadatos de linguist
 │   ├── .gitignore                    # Plantilla políglota comentada (OS, IDEs, secretos, lenguajes)
 │   └── .releaserc.js.example         # Configuración genérica para Semantic-Release y Conventional Commits
 │
-├── 🤖 Automatización y GitHub (.github/)
+├── Automatización y GitHub (.github/)
 │   ├── workflows/ci.yml              # CI determinista con permisos mínimos de solo lectura
 │   ├── workflows/release.yml.example # Pipeline de release automatizado con SemVer, artefactos y checksums
 │   ├── workflows/gitleaks.yml        # Escaneo continuo de fuga de secretos con historial completo
@@ -37,14 +38,15 @@ externas.
 │   │   ├── bug_report.md             # Reporte reproducible de errores y diagnóstico de entorno
 │   │   └── feature_request.md        # Propuestas de funcionalidades y diseño arquitectónico
 │   ├── PULL_REQUEST_TEMPLATE.md      # Lista de verificación previa para autores de PRs
+│   ├── CODEOWNERS                    # Asignación activa de revisores por ruta o componente
 │   ├── CODEOWNERS.example            # Asignación de revisores por ruta o subsistema
 │   └── settings.example.yml          # Especificación de rulesets modernos, protección y políticas de merge
 │
-├── 🛠️ Scripts Utilitarios (scripts/)
+├── Scripts Utilitarios (scripts/)
 │   ├── check-repo.sh                 # Auditor de conformidad de estándares (código de salida 0/1)
 │   └── new-repo.sh                   # Instalador automatizado para repositorios nuevos o existentes
 │
-└── 📚 Documentación Técnica (docs/)
+└── Documentación Técnica (docs/)
     ├── 01-principios.md              # Principios de ingeniería, inmutabilidad y disciplina de alcance
     ├── 02-estructura-repo.md         # Anatomía y responsabilidades de directorios y archivos
     ├── 03-branching.md               # Estrategia de ramas (Trunk-Based / GitHub Flow)
@@ -61,7 +63,7 @@ externas.
 
 ---
 
-## ⏱️ Guía de Adopción en 10 Minutos
+## Guía de Adopción en 10 Minutos
 
 ### 1. Auditar el Repositorio Actual
 
@@ -110,7 +112,7 @@ activar el escaneo de secretos y exigir checks de CI y SAST de forma obligatoria
 
 ---
 
-## 📖 Índice de Documentación Detallada
+## Índice de Documentación Detallada
 
 1. [**Principios de Ingeniería y VCS**](docs/01-principios.md): Inmutabilidad, reproducibilidad y disciplina de alcance.
 2. [**Estructura Estándar**](docs/02-estructura-repo.md): Anatomía física y lógica de directorios.
@@ -134,7 +136,7 @@ activar el escaneo de secretos y exigir checks de CI y SAST de forma obligatoria
 
 ---
 
-## 🛠️ Herramientas de Verificación Incluidas
+## Herramientas de Verificación Incluidas
 
 - **`./scripts/check-repo.sh`**: Evalúa la presencia, tamaño y consistencia de todos los componentes del kit.
   Retorna código de salida `0` si todos los requisitos se cumplen o `1` si detecta omisiones críticas. Ideal para

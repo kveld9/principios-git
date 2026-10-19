@@ -143,6 +143,7 @@ copy_file() {
     sed -i "s/\[YEAR\]/${YEAR}/g" "${dest}" 2>/dev/null
     sed -i "s/\[OWNER\]/${OWNER}/g" "${dest}" 2>/dev/null
     sed -i "s/security@example.com/${EMAIL}/g" "${dest}" 2>/dev/null
+    sed -i "s/@kveld9/@${OWNER#@}/g" "${dest}" 2>/dev/null
   fi
 
   echo "  [CREATE] ${dest#${TARGET_DIR}/}"
@@ -172,6 +173,7 @@ copy_file "${KIT_ROOT}/.github/dependabot.yml" "${TARGET_DIR}/.github/dependabot
 copy_file "${KIT_ROOT}/.github/ISSUE_TEMPLATE/bug_report.md" "${TARGET_DIR}/.github/ISSUE_TEMPLATE/bug_report.md"
 copy_file "${KIT_ROOT}/.github/ISSUE_TEMPLATE/feature_request.md" "${TARGET_DIR}/.github/ISSUE_TEMPLATE/feature_request.md"
 copy_file "${KIT_ROOT}/.github/PULL_REQUEST_TEMPLATE.md" "${TARGET_DIR}/.github/PULL_REQUEST_TEMPLATE.md"
+copy_file "${KIT_ROOT}/.github/CODEOWNERS" "${TARGET_DIR}/.github/CODEOWNERS"
 copy_file "${KIT_ROOT}/.github/CODEOWNERS.example" "${TARGET_DIR}/.github/CODEOWNERS.example"
 copy_file "${KIT_ROOT}/.github/settings.example.yml" "${TARGET_DIR}/.github/settings.example.yml"
 
