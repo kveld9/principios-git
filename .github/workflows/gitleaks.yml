@@ -11,6 +11,9 @@ on:
 
 permissions:
   contents: read
+  # The gitleaks-action wrapper lists PR commits via the GitHub API during pull_request events;
+  # without pull-requests: read permission, API calls fail with HTTP 403.
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

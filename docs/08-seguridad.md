@@ -42,6 +42,8 @@ steps:
 > [!IMPORTANT]
 > **Por qué `fetch-depth: 0` es Mandatorio**:
 > Por defecto, `actions/checkout` descarga únicamente el commit más reciente (`fetch-depth: 1`). Si un atacante o desarrollador comete un secreto en un commit y luego intenta "remediarlo" borrándolo en el siguiente commit del mismo PR, un escaneo superficial no detectará la fuga. `fetch-depth: 0` garantiza que Gitleaks audite todos los deltas del árbol histórico.
+>
+> **Permisos Mínimos en CI**: Los escáneres que operan en modo PR vía API (`gitleaks-action`) requieren el permiso `pull-requests: read` además de `contents: read` para listar los commits del pull request. El principio de menor privilegio se mantiene estricto al no conceder permisos de escritura (`contents: write`).
 
 ### Prevención Local y Push Protection
 - **`.gitignore` Exhaustivo**: El archivo [`.gitignore`](../.gitignore) de este kit excluye automáticamente patrones de secretos habituales (`.env`, `*.pem`, `*.key`, `id_rsa`, etc.).
