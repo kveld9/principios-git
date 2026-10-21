@@ -49,6 +49,16 @@ def has_head() -> bool:
     return res.returncode == 0
 
 
+def is_merging() -> bool:
+    """Check whether a merge is in progress via MERGE_HEAD.
+
+    Note: Octopus merges use only the first MERGE_HEAD ref since .git internals
+    are off-limits and git rev-parse resolves the primary merge head.
+    """
+    res = subprocess.run(["git", "rev-parse", "-q", "--verify", "MERGE_HEAD"], capture_output=True, env=GIT_ENV)
+    return res.returncode == 0
+
+
 def get_merge_base(ref: str) -> str:
     """Compute the merge-base between a target ref and HEAD."""
     return git_cmd("merge-base", ref, "HEAD").strip()
@@ -314,6 +324,73 @@ def check_name_violations(
     return check_fallback_violations(path, name, new_ccns, pool, limit)
 
 
+def combine_ccn_lists(list_a: list[int], list_b: list[int]) -> list[int]:
+    """Combine two CCN lists by rank-pairing descending and taking element-wise max."""
+    sorted_a = sorted(list_a, reverse=True)
+    sorted_b = sorted(list_b, reverse=True)
+    min_len = min(len(sorted_a), len(sorted_b))
+    paired = [max(sorted_a[i], sorted_b[i]) for i in range(min_len)]
+    return paired + sorted_a[min_len:] + sorted_b[min_len:]
+
+
+def combine_parent_baselines(
+    head_fns: dict[str, list[int]],
+    merge_fns: dict[str, list[int]],
+) -> dict[str, list[int]]:
+    """Combine baseline functions from HEAD and MERGE_HEAD taking element-wise max."""
+    all_names = set(head_fns.keys()) | set(merge_fns.keys())
+    combined: dict[str, list[int]] = {}
+    for name in all_names:
+        combined[name] = combine_ccn_lists(head_fns.get(name, []), merge_fns.get(name, []))
+    return combined
+
+
+def get_merge_candidate_paths(status: str, path: str, old_path: Optional[str]) -> list[str]:
+    """Return ordered list of candidate paths in MERGE_HEAD."""
+    if status.startswith(("R", "C")) and old_path:
+        return [old_path, path]
+    return [path]
+
+
+def resolve_merge_head_path(status: str, path: str, old_path: Optional[str]) -> Optional[str]:
+    """Determine path in MERGE_HEAD, trying old then new path for renames."""
+    for candidate in get_merge_candidate_paths(status, path, old_path):
+        if ref_path_exists("MERGE_HEAD", candidate):
+            return candidate
+    return None
+
+
+def read_merge_baseline_functions(
+    status: str,
+    path: str,
+    old_path: Optional[str],
+) -> dict[str, list[int]]:
+    """Analyze file at MERGE_HEAD if present."""
+    merge_path = resolve_merge_head_path(status, path, old_path)
+    if not merge_path:
+        return {}
+    merge_src = get_file_at_ref("MERGE_HEAD", merge_path)
+    suffix = os.path.splitext(merge_path)[1]
+    return analyze_source(merge_src, suffix)
+
+
+def resolve_file_baseline(
+    status: str,
+    path: str,
+    old_path: Optional[str],
+    base_ref: Optional[str],
+    merging: bool,
+) -> dict[str, list[int]]:
+    """Resolve baseline functions for candidate file from base_ref and MERGE_HEAD if merging."""
+    old_src = read_baseline_source(status, old_path, base_ref)
+    suffix = os.path.splitext(old_path)[1] if old_path else os.path.splitext(path)[1]
+    head_fns = analyze_source(old_src, suffix)
+    if not merging:
+        return head_fns
+    merge_fns = read_merge_baseline_functions(status, path, old_path)
+    return combine_parent_baselines(head_fns, merge_fns)
+
+
 def file_violations(
     status: str,
     path: str,
@@ -322,14 +399,13 @@ def file_violations(
     is_staged: bool,
     limit: int,
     pool: dict[str, list[int]],
+    merging: bool = False,
 ) -> list[str]:
     """Calculate complexity violations for a candidate file."""
     new_src = read_source(path, is_staged)
-    old_src = read_baseline_source(status, old_path, base_ref)
     suffix = os.path.splitext(path)[1]
-    old_suffix = os.path.splitext(old_path)[1] if old_path else suffix
     after = analyze_source(new_src, suffix)
-    before = analyze_source(old_src, old_suffix)
+    before = resolve_file_baseline(status, path, old_path, base_ref, merging)
     violations = []
     for name, new_ccns in after.items():
         violations.extend(check_name_violations(path, name, new_ccns, before, pool, limit))
@@ -372,10 +448,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         return 2
 
     limit = get_limit()
+    merging = is_staged and is_merging()
     pool = build_moved_out_pool(records, base_ref, is_staged, get_exclude_pattern())
     violations: list[str] = []
     for status, path, old_path in candidates:
-        violations.extend(file_violations(status, path, old_path, base_ref, is_staged, limit, pool))
+        violations.extend(file_violations(status, path, old_path, base_ref, is_staged, limit, pool, merging))
     return report_violations(violations)
 
 

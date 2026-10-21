@@ -409,6 +409,76 @@ class TestCheckComplexity(unittest.TestCase):
         self.assertEqual(res.returncode, 1)
         self.assertIn("complexity: b.go: dup_fn x int CCN 12 (was new, limit 10)", res.stderr)
 
+    def test_merge_other_branch_adds_over_limit_file_passes(self) -> None:
+        """Merge where the other branch adds a file with a CCN>limit function must exit 0."""
+        init_path = os.path.join(self.repo_dir, "init.py")
+        with open(init_path, "w", encoding="utf-8") as f:
+            f.write("def init(): pass\n")
+        self.git("add", "init.py")
+        self.git("commit", "-m", "Initial commit")
+
+        self.git("checkout", "-b", "other")
+        other_file = os.path.join(self.repo_dir, "added_in_other.py")
+        with open(other_file, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_function("other_fn", 11))
+        self.git("add", "added_in_other.py")
+        self.git("commit", "-m", "Add high CCN function in other")
+
+        self.git("checkout", "main")
+        self.git("merge", "--no-commit", "--no-ff", "other")
+
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 0, msg=f"Stderr: {res.stderr}")
+
+    def test_merge_function_improved_relative_to_other_parent_passes(self) -> None:
+        """Merge where HEAD has f at CCN 12, other has f at CCN 20, merged f is CCN 13 must exit 0."""
+        calc_path = os.path.join(self.repo_dir, "calc.py")
+        with open(calc_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_function("calc_fn", 11))  # CCN 12
+        self.git("add", "calc.py")
+        self.git("commit", "-m", "calc_fn CCN 12 on main")
+
+        self.git("checkout", "-b", "other")
+        with open(calc_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_function("calc_fn", 19))  # CCN 20
+        self.git("add", "calc.py")
+        self.git("commit", "-m", "calc_fn CCN 20 on other")
+
+        self.git("checkout", "main")
+        self.git("merge", "--no-commit", "other", check=False)
+
+        with open(calc_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_function("calc_fn", 12))  # CCN 13
+        self.git("add", "calc.py")
+
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 0, msg=f"Stderr: {res.stderr}")
+
+    def test_merge_function_exceeds_both_parents_fails(self) -> None:
+        """Merge where merged f exceeds BOTH parents (HEAD 11, other 12, merged 14) must exit 1."""
+        calc_path = os.path.join(self.repo_dir, "calc.py")
+        with open(calc_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_function("calc_fn", 10))  # CCN 11
+        self.git("add", "calc.py")
+        self.git("commit", "-m", "calc_fn CCN 11 on main")
+
+        self.git("checkout", "-b", "other")
+        with open(calc_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_function("calc_fn", 11))  # CCN 12
+        self.git("add", "calc.py")
+        self.git("commit", "-m", "calc_fn CCN 12 on other")
+
+        self.git("checkout", "main")
+        self.git("merge", "--no-commit", "other", check=False)
+
+        with open(calc_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_function("calc_fn", 13))  # CCN 14
+        self.git("add", "calc.py")
+
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 1)
+        self.assertIn("complexity: calc.py: calc_fn( x ) CCN 14 (was 12, limit 10)", res.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

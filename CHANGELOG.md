@@ -16,6 +16,9 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Fixed
 
+- **Falso positivo en commits de fusión (*merge*) en compuerta de complejidad**: Corrección en
+  `scripts/check-complexity.py` al ejecutar en modo preparado durante fusiones en curso, combinando la complejidad
+  de `HEAD` y `MERGE_HEAD` mediante el máximo por función y tolerando código nuevo proveniente de la otra rama.
 - **Falso positivo por reubicación de funciones en compuerta de complejidad**: Corrección en
   `scripts/check-complexity.py` que reportaba erróneamente funciones heredadas trasladadas entre archivos dentro del
   mismo diff como código nuevo excedido, incorporando un pool de funciones salientes consumibles por rango de CCN y
