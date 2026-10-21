@@ -20,6 +20,15 @@ def make_high_cc_function(name: str = "func", branches: int = 11) -> str:
     return "\n".join(lines)
 
 
+def make_high_cc_go_function(name: str = "heavy_fn", branches: int = 11) -> str:
+    """Generate a Go function with CCN = branches + 1."""
+    lines = ["package main\n", f"func {name}(x int) int {{"]
+    for i in range(branches):
+        lines.append(f"    if x == {i} {{ return {i} }}")
+    lines.append("    return -1\n}\n")
+    return "\n".join(lines)
+
+
 @unittest.skipUnless(shutil.which("lizard"), "lizard CLI is required for complexity ratchet tests")
 class TestCheckComplexity(unittest.TestCase):
     """Test suite covering behavior contract of check-complexity.py."""
@@ -305,6 +314,100 @@ class TestCheckComplexity(unittest.TestCase):
             self.assertIn("mod.py: heavy( x ) CCN 12 (was new, limit 10)", res_gate.stderr)
         finally:
             sha256_dir.cleanup()
+
+    def test_move_legacy_over_limit_function_unchanged_passes(self) -> None:
+        """Moving legacy over-limit function from a.go to new b.go unchanged must exit 0."""
+        a_path = os.path.join(self.repo_dir, "a.go")
+        with open(a_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_go_function("legacy_fn", 11))
+        self.git("add", "a.go")
+        self.git("commit", "-m", "Commit legacy function in a.go")
+
+        with open(a_path, "w", encoding="utf-8") as f:
+            f.write("package main\n\nfunc helper() int {\n    return 0\n}\n")
+        b_path = os.path.join(self.repo_dir, "b.go")
+        with open(b_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_go_function("legacy_fn", 11))
+        self.git("add", "a.go", "b.go")
+
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 0, msg=f"Stderr: {res.stderr}")
+
+    def test_move_legacy_over_limit_function_made_worse_fails(self) -> None:
+        """Moving legacy over-limit function and making it worse must exit 1 with (was <old>)."""
+        a_path = os.path.join(self.repo_dir, "a.go")
+        with open(a_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_go_function("legacy_fn", 11))
+        self.git("add", "a.go")
+        self.git("commit", "-m", "Commit legacy function in a.go")
+
+        with open(a_path, "w", encoding="utf-8") as f:
+            f.write("package main\n\nfunc helper() int {\n    return 0\n}\n")
+        b_path = os.path.join(self.repo_dir, "b.go")
+        with open(b_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_go_function("legacy_fn", 13))
+        self.git("add", "a.go", "b.go")
+
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 1)
+        self.assertIn("complexity: b.go: legacy_fn x int CCN 14 (was 12, limit 10)", res.stderr)
+
+    def test_delete_file_recreate_over_limit_function_passes(self) -> None:
+        """Deleting a.go and recreating its over-limit function in b.go must exit 0."""
+        a_path = os.path.join(self.repo_dir, "a.go")
+        extra_content = "\n".join([f"func extra{i}() int {{ return {i} }}" for i in range(20)])
+        with open(a_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_go_function("legacy_fn", 11) + "\n" + extra_content)
+        self.git("add", "a.go")
+        self.git("commit", "-m", "Commit legacy function and extra functions in a.go")
+
+        self.git("rm", "a.go")
+        b_path = os.path.join(self.repo_dir, "b.go")
+        with open(b_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_go_function("legacy_fn", 11))
+        self.git("add", "b.go")
+
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 0, msg=f"Stderr: {res.stderr}")
+
+    def test_name_present_in_both_stays_and_new_fails(self) -> None:
+        """When function name is present in both a.go (stays) and b.go (new copy), exit 1."""
+        a_path = os.path.join(self.repo_dir, "a.go")
+        with open(a_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_go_function("shared_fn", 11))
+        self.git("add", "a.go")
+        self.git("commit", "-m", "Commit shared function in a.go")
+
+        with open(a_path, "a", encoding="utf-8") as f:
+            f.write("\nfunc helper() int {\n    return 42\n}\n")
+        b_path = os.path.join(self.repo_dir, "b.go")
+        with open(b_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_go_function("shared_fn", 11))
+        self.git("add", "a.go", "b.go")
+
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 1)
+        self.assertIn("complexity: b.go: shared_fn x int CCN 12 (was new, limit 10)", res.stderr)
+
+    def test_one_moved_function_cannot_justify_two_new_copies_fails(self) -> None:
+        """One moved function cannot justify two new over-limit copies (exit 1)."""
+        a_path = os.path.join(self.repo_dir, "a.go")
+        with open(a_path, "w", encoding="utf-8") as f:
+            f.write(make_high_cc_go_function("dup_fn", 11))
+        self.git("add", "a.go")
+        self.git("commit", "-m", "Commit single dup_fn in a.go")
+
+        with open(a_path, "w", encoding="utf-8") as f:
+            f.write("package main\n\nfunc helper() int {\n    return 0\n}\n")
+        b_path = os.path.join(self.repo_dir, "b.go")
+        content = make_high_cc_go_function("dup_fn", 11) + "\n" + make_high_cc_go_function("dup_fn", 11)
+        with open(b_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        self.git("add", "a.go", "b.go")
+
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 1)
+        self.assertIn("complexity: b.go: dup_fn x int CCN 12 (was new, limit 10)", res.stderr)
 
 
 if __name__ == "__main__":

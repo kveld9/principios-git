@@ -100,7 +100,7 @@ def parse_next_record(tokens: list[str], idx: int) -> tuple[tuple[str, str, Opti
     status = tokens[idx]
     if status.startswith(("R", "C")):
         return (status, tokens[idx + 2], tokens[idx + 1]), idx + 3
-    old_path = tokens[idx + 1] if status.startswith("M") else None
+    old_path = tokens[idx + 1] if status.startswith(("M", "D")) else None
     return (status, tokens[idx + 1], old_path), idx + 2
 
 
@@ -120,19 +120,26 @@ def parse_z_diff(raw_diff: str) -> list[tuple[str, str, Optional[str]]]:
 def get_raw_diff(base_ref: Optional[str], is_staged: bool) -> str:
     """Retrieve raw name-status diff from git with -z."""
     if is_staged:
-        return git_cmd("diff", "--cached", "--name-status", "-M", "--diff-filter=AMR", "-z")
+        return git_cmd("diff", "--cached", "--name-status", "-M", "--diff-filter=AMRD", "-z")
     target_ref = base_ref if base_ref else get_empty_tree_hash()
-    return git_cmd("diff", "--name-status", "-M", "--diff-filter=AMR", "-z", target_ref)
+    return git_cmd("diff", "--name-status", "-M", "--diff-filter=AMRD", "-z", target_ref)
+
+
+def is_analysis_candidate(record: tuple[str, str, Optional[str]], extra_exclude: Optional[Pattern[str]]) -> bool:
+    """Check if record represents an active source file requiring complexity analysis."""
+    if record[0].startswith("D"):
+        return False
+    return is_candidate_file(record[1], extra_exclude)
 
 
 def collect_candidates(
-    raw_diff: str,
+    records: list[tuple[str, str, Optional[str]]],
     extra_exclude: Optional[Pattern[str]],
 ) -> list[tuple[str, str, Optional[str]]]:
     """Collect candidate files requiring complexity analysis."""
     candidates = []
-    for record in parse_z_diff(raw_diff):
-        if is_candidate_file(record[1], extra_exclude):
+    for record in records:
+        if is_analysis_candidate(record, extra_exclude):
             candidates.append(record)
     return candidates
 
@@ -216,6 +223,97 @@ def read_baseline_source(status: str, old_path: Optional[str], base_ref: Optiona
     return get_file_at_ref(base_ref, old_path)
 
 
+def is_pool_candidate_record(
+    old_path: Optional[str],
+    base_ref: Optional[str],
+    extra_exclude: Optional[Pattern[str]],
+) -> bool:
+    """Check if record can contribute moved-out baseline functions."""
+    if not base_ref or not old_path:
+        return False
+    return is_candidate_file(old_path, extra_exclude)
+
+
+def get_new_function_names(
+    status: str,
+    path: str,
+    is_staged: bool,
+    extra_exclude: Optional[Pattern[str]],
+) -> set[str]:
+    """Return names of functions present in the new version of a candidate file."""
+    if status.startswith("D") or not is_candidate_file(path, extra_exclude):
+        return set()
+    suffix = os.path.splitext(path)[1]
+    new_src = read_source(path, is_staged)
+    return set(analyze_source(new_src, suffix).keys())
+
+
+def record_moved_out_functions(
+    record: tuple[str, str, Optional[str]],
+    base_ref: str,
+    is_staged: bool,
+    extra_exclude: Optional[Pattern[str]],
+) -> dict[str, list[int]]:
+    """Extract baseline functions from a record that no longer exist in its new version."""
+    status, path, old_path = record
+    if not is_pool_candidate_record(old_path, base_ref, extra_exclude):
+        return {}
+    assert old_path is not None
+    old_suffix = os.path.splitext(old_path)[1]
+    before = analyze_source(read_baseline_source(status, old_path, base_ref), old_suffix)
+    new_names = get_new_function_names(status, path, is_staged, extra_exclude)
+    return {name: ccns for name, ccns in before.items() if name not in new_names}
+
+
+def build_moved_out_pool(
+    records: list[tuple[str, str, Optional[str]]],
+    base_ref: Optional[str],
+    is_staged: bool,
+    extra_exclude: Optional[Pattern[str]],
+) -> dict[str, list[int]]:
+    """Build pool of moved-out functions from candidate records, sorted by CCN descending."""
+    if not base_ref:
+        return {}
+    pool: dict[str, list[int]] = {}
+    for record in records:
+        for name, ccns in record_moved_out_functions(record, base_ref, is_staged, extra_exclude).items():
+            pool.setdefault(name, []).extend(ccns)
+    for ccns in pool.values():
+        ccns.sort(reverse=True)
+    return pool
+
+
+def check_fallback_violations(
+    path: str,
+    name: str,
+    new_ccns: list[int],
+    pool: dict[str, list[int]],
+    limit: int,
+) -> list[str]:
+    """Pair new CCNs with consumed pool entries by rank and detect ratchet violations."""
+    violations = []
+    for new_val in sorted(new_ccns, reverse=True):
+        old_val = pool[name].pop(0) if pool.get(name) else None
+        msg = violation_for_pair(path, name, new_val, old_val, limit)
+        if msg:
+            violations.append(msg)
+    return violations
+
+
+def check_name_violations(
+    path: str,
+    name: str,
+    new_ccns: list[int],
+    before: dict[str, list[int]],
+    pool: dict[str, list[int]],
+    limit: int,
+) -> list[str]:
+    """Check violations using same-file baseline if present, or pool fallback if absent."""
+    if name in before:
+        return check_function_violations(path, name, new_ccns, before[name], limit)
+    return check_fallback_violations(path, name, new_ccns, pool, limit)
+
+
 def file_violations(
     status: str,
     path: str,
@@ -223,6 +321,7 @@ def file_violations(
     base_ref: Optional[str],
     is_staged: bool,
     limit: int,
+    pool: dict[str, list[int]],
 ) -> list[str]:
     """Calculate complexity violations for a candidate file."""
     new_src = read_source(path, is_staged)
@@ -233,7 +332,7 @@ def file_violations(
     before = analyze_source(old_src, old_suffix)
     violations = []
     for name, new_ccns in after.items():
-        violations.extend(check_function_violations(path, name, new_ccns, before.get(name, []), limit))
+        violations.extend(check_name_violations(path, name, new_ccns, before, pool, limit))
     return violations
 
 
@@ -264,7 +363,8 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     os.chdir(git_cmd("rev-parse", "--show-toplevel").strip())
     base_ref, is_staged = resolve_baseline(args.base)
-    candidates = collect_candidates(get_raw_diff(base_ref, is_staged), get_exclude_pattern())
+    records = parse_z_diff(get_raw_diff(base_ref, is_staged))
+    candidates = collect_candidates(records, get_exclude_pattern())
     if not candidates:
         return 0
     if shutil.which("lizard") is None:
@@ -272,9 +372,10 @@ def main(argv: Optional[list[str]] = None) -> int:
         return 2
 
     limit = get_limit()
+    pool = build_moved_out_pool(records, base_ref, is_staged, get_exclude_pattern())
     violations: list[str] = []
     for status, path, old_path in candidates:
-        violations.extend(file_violations(status, path, old_path, base_ref, is_staged, limit))
+        violations.extend(file_violations(status, path, old_path, base_ref, is_staged, limit, pool))
     return report_violations(violations)
 
 

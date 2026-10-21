@@ -14,6 +14,13 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
   de CCN o empeoren deuda técnica previa, tolerando código heredado no modificado. Integración en `new-repo.sh` y
   `.githooks/pre-commit.example`.
 
+### Fixed
+
+- **Falso positivo por reubicación de funciones en compuerta de complejidad**: Corrección en
+  `scripts/check-complexity.py` que reportaba erróneamente funciones heredadas trasladadas entre archivos dentro del
+  mismo diff como código nuevo excedido, incorporando un pool de funciones salientes consumibles por rango de CCN y
+  soportando archivos eliminados.
+
 ## [1.0.0] - 2026-10-19
 
 ### Added
