@@ -188,8 +188,15 @@ done
 # 4. Verification & Scaffolding Scripts (scripts/)
 mkdir -p "${TARGET_DIR}/scripts"
 copy_file "${KIT_ROOT}/scripts/check-repo.sh" "${TARGET_DIR}/scripts/check-repo.sh"
+copy_file "${KIT_ROOT}/scripts/check-complexity.py" "${TARGET_DIR}/scripts/check-complexity.py"
 copy_file "${KIT_ROOT}/scripts/new-repo.sh" "${TARGET_DIR}/scripts/new-repo.sh"
-chmod +x "${TARGET_DIR}/scripts/"*.sh 2>/dev/null || true
+chmod +x "${TARGET_DIR}/scripts/"*.sh "${TARGET_DIR}/scripts/"*.py 2>/dev/null || true
+
+# 5. Git Hooks (.githooks/)
+mkdir -p "${TARGET_DIR}/.githooks"
+copy_file "${KIT_ROOT}/.githooks/pre-commit.example" "${TARGET_DIR}/.githooks/pre-commit.example"
+chmod +x "${TARGET_DIR}/.githooks/pre-commit.example" 2>/dev/null || true
 
 echo -e "\n==> GitHub Standards Kit setup completed successfully."
 echo "    Run '${TARGET_DIR}/scripts/check-repo.sh' to audit compliance."
+echo "    To activate git hooks, run: cp .githooks/pre-commit.example .githooks/pre-commit && chmod +x .githooks/pre-commit && git config core.hooksPath .githooks"

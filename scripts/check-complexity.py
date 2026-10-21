@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+"""Diff-aware cyclomatic-complexity ratchet gate.
+
+Blocks commits that introduce a function exceeding the CCN limit or worsen an
+already over-limit function, while untouched legacy debt passes.
+"""
+
+import argparse
+import csv
+import io
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from typing import Optional, Pattern
+
+SUPPORTED_EXTENSIONS = (
+    ".kt", ".kts", ".go", ".py", ".java",
+    ".js", ".jsx", ".ts", ".tsx", ".rs",
+    ".c", ".cc", ".cpp", ".h", ".hpp",
+    ".swift", ".rb", ".php", ".cs", ".scala",
+)
+
+DEFAULT_EXCLUDE_RE = re.compile(
+    r"(?:^|/)(?:build|vendor|node_modules|test|tests|androidTest)(?:/|$)"
+    r"|.*_test\.go$"
+    r"|.*Tests?\.kt$"
+    r"|(?:^|/)test_[^/]*\.py$"
+    r"|.*_test\.py$"
+    r"|\.(?:spec|test)\."
+)
+
+GIT_ENV = {**os.environ, "LC_ALL": "C"}
+
+
+def git_cmd(*args: str) -> str:
+    """Run a git command with LC_ALL=C, surfacing any failure immediately."""
+    res = subprocess.run(["git", *args], capture_output=True, text=True, env=GIT_ENV)
+    if res.returncode != 0:
+        raise subprocess.CalledProcessError(res.returncode, ["git", *args], res.stdout, res.stderr)
+    return res.stdout
+
+
+def has_head() -> bool:
+    """Check whether HEAD exists in the current git repository."""
+    res = subprocess.run(["git", "rev-parse", "--verify", "HEAD"], capture_output=True, text=True, env=GIT_ENV)
+    return res.returncode == 0
+
+
+def get_merge_base(ref: str) -> str:
+    """Compute the merge-base between a target ref and HEAD."""
+    return git_cmd("merge-base", ref, "HEAD").strip()
+
+
+def get_empty_tree_hash() -> str:
+    """Return the empty tree hash derived dynamically for the repository."""
+    return git_cmd("hash-object", "-t", "tree", "/dev/null").strip()
+
+
+def ref_path_exists(ref: str, path: str) -> bool:
+    """Check whether a path exists in the given git ref."""
+    res = subprocess.run(["git", "cat-file", "-e", f"{ref}:{path}"], capture_output=True, env=GIT_ENV)
+    return res.returncode == 0
+
+
+def get_file_at_ref(ref: str, path: str) -> str:
+    """Fetch file content at ref, returning empty string if missing."""
+    if not ref_path_exists(ref, path):
+        return ""
+    return git_cmd("show", f"{ref}:{path}")
+
+
+def get_limit() -> int:
+    """Return CCN limit from CCN_LIMIT env var, defaulting to 10."""
+    val = os.environ.get("CCN_LIMIT", "").strip()
+    return int(val) if val else 10
+
+
+def get_exclude_pattern() -> Optional[Pattern[str]]:
+    """Return extra exclusion pattern from CCN_EXCLUDE env var if configured."""
+    pattern = os.environ.get("CCN_EXCLUDE", "").strip()
+    return re.compile(pattern) if pattern else None
+
+
+def is_candidate_file(path: str, extra_pattern: Optional[Pattern[str]] = None) -> bool:
+    """Check if a file matches supported code extensions and is not excluded."""
+    if not path.endswith(SUPPORTED_EXTENSIONS):
+        return False
+    if DEFAULT_EXCLUDE_RE.search(path):
+        return False
+    if extra_pattern:
+        return not bool(extra_pattern.search(path))
+    return True
+
+
+def parse_next_record(tokens: list[str], idx: int) -> tuple[tuple[str, str, Optional[str]], int]:
+    """Parse next record from NUL-separated diff tokens."""
+    status = tokens[idx]
+    if status.startswith(("R", "C")):
+        return (status, tokens[idx + 2], tokens[idx + 1]), idx + 3
+    old_path = tokens[idx + 1] if status.startswith("M") else None
+    return (status, tokens[idx + 1], old_path), idx + 2
+
+
+def parse_z_diff(raw_diff: str) -> list[tuple[str, str, Optional[str]]]:
+    """Parse git diff -z NUL-separated records."""
+    tokens = raw_diff.split("\0")
+    records = []
+    idx = 0
+    while idx + 1 < len(tokens):
+        if not tokens[idx]:
+            break
+        record, idx = parse_next_record(tokens, idx)
+        records.append(record)
+    return records
+
+
+def get_raw_diff(base_ref: Optional[str], is_staged: bool) -> str:
+    """Retrieve raw name-status diff from git with -z."""
+    if is_staged:
+        return git_cmd("diff", "--cached", "--name-status", "-M", "--diff-filter=AMR", "-z")
+    target_ref = base_ref if base_ref else get_empty_tree_hash()
+    return git_cmd("diff", "--name-status", "-M", "--diff-filter=AMR", "-z", target_ref)
+
+
+def collect_candidates(
+    raw_diff: str,
+    extra_exclude: Optional[Pattern[str]],
+) -> list[tuple[str, str, Optional[str]]]:
+    """Collect candidate files requiring complexity analysis."""
+    candidates = []
+    for record in parse_z_diff(raw_diff):
+        if is_candidate_file(record[1], extra_exclude):
+            candidates.append(record)
+    return candidates
+
+
+def parse_lizard_csv(csv_text: str) -> dict[str, list[int]]:
+    """Parse lizard CSV output into mapping of function long_name to CCN list."""
+    functions: dict[str, list[int]] = {}
+    for row in csv.reader(io.StringIO(csv_text)):
+        if len(row) > 8:
+            functions.setdefault(row[8], []).append(int(row[1]))
+    return functions
+
+
+def analyze_source(source: str, suffix: str) -> dict[str, list[int]]:
+    """Analyze source code with lizard using a temporary file with the original extension."""
+    if not source:
+        return {}
+    fd, tmp_path = tempfile.mkstemp(suffix=suffix)
+    try:
+        with open(fd, "w", encoding="utf-8") as f:
+            f.write(source)
+        res = subprocess.run(["lizard", "--csv", tmp_path], capture_output=True, text=True, check=True)
+        return parse_lizard_csv(res.stdout)
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+
+def previous_ccn(old_ccn: Optional[int]) -> tuple[int, str]:
+    """Convert optional old CCN into baseline value and display string."""
+    if old_ccn is None:
+        return 0, "new"
+    return old_ccn, str(old_ccn)
+
+
+def violation_for_pair(
+    path: str,
+    name: str,
+    new_ccn: int,
+    old_ccn: Optional[int],
+    limit: int,
+) -> Optional[str]:
+    """Return formatted violation message if new CCN exceeds limit and previous CCN."""
+    prev_ccn, was = previous_ccn(old_ccn)
+    if new_ccn > limit and new_ccn > prev_ccn:
+        return f"{path}: {name} CCN {new_ccn} (was {was}, limit {limit})"
+    return None
+
+
+def check_function_violations(
+    path: str,
+    name: str,
+    new_ccns: list[int],
+    old_ccns: list[int],
+    limit: int,
+) -> list[str]:
+    """Pair new and baseline CCNs by rank and detect ratchet violations."""
+    sorted_new = sorted(new_ccns, reverse=True)
+    sorted_old = sorted(old_ccns, reverse=True)
+    padded_old: list[Optional[int]] = list(sorted_old) + [None] * max(0, len(sorted_new) - len(sorted_old))
+    violations = []
+    for new_val, old_val in zip(sorted_new, padded_old):
+        msg = violation_for_pair(path, name, new_val, old_val, limit)
+        if msg:
+            violations.append(msg)
+    return violations
+
+
+def read_source(path: str, is_staged: bool) -> str:
+    """Read new source from git index in staged mode or working tree in range mode."""
+    if is_staged:
+        return git_cmd("show", f":{path}")
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
+        return f.read()
+
+
+def read_baseline_source(status: str, old_path: Optional[str], base_ref: Optional[str]) -> str:
+    """Read baseline source for modified or renamed files."""
+    if status.startswith("A") or not base_ref or not old_path:
+        return ""
+    return get_file_at_ref(base_ref, old_path)
+
+
+def file_violations(
+    status: str,
+    path: str,
+    old_path: Optional[str],
+    base_ref: Optional[str],
+    is_staged: bool,
+    limit: int,
+) -> list[str]:
+    """Calculate complexity violations for a candidate file."""
+    new_src = read_source(path, is_staged)
+    old_src = read_baseline_source(status, old_path, base_ref)
+    suffix = os.path.splitext(path)[1]
+    old_suffix = os.path.splitext(old_path)[1] if old_path else suffix
+    after = analyze_source(new_src, suffix)
+    before = analyze_source(old_src, old_suffix)
+    violations = []
+    for name, new_ccns in after.items():
+        violations.extend(check_function_violations(path, name, new_ccns, before.get(name, []), limit))
+    return violations
+
+
+def resolve_baseline(base_arg: Optional[str]) -> tuple[Optional[str], bool]:
+    """Determine the baseline reference and whether staged mode applies."""
+    if not has_head():
+        return None, base_arg is None
+    if base_arg:
+        return get_merge_base(base_arg), False
+    return "HEAD", True
+
+
+def report_violations(violations: list[str]) -> int:
+    """Print violations and remediation advice to stderr, returning exit code."""
+    for v in violations:
+        sys.stderr.write(f"complexity: {v}\n")
+    if violations:
+        sys.stderr.write("Split the function (guard clauses, extraction, lookup tables) before committing.\n")
+        return 1
+    return 0
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    """Execute complexity gate check."""
+    parser = argparse.ArgumentParser(description="Diff-aware cyclomatic complexity gate.")
+    parser.add_argument("--base", metavar="REF", help="Compare working tree against git merge-base REF HEAD.")
+    args = parser.parse_args(argv)
+
+    os.chdir(git_cmd("rev-parse", "--show-toplevel").strip())
+    base_ref, is_staged = resolve_baseline(args.base)
+    candidates = collect_candidates(get_raw_diff(base_ref, is_staged), get_exclude_pattern())
+    if not candidates:
+        return 0
+    if shutil.which("lizard") is None:
+        sys.stderr.write("complexity: lizard not found (pip install lizard)\n")
+        return 2
+
+    limit = get_limit()
+    violations: list[str] = []
+    for status, path, old_path in candidates:
+        violations.extend(file_violations(status, path, old_path, base_ref, is_staged, limit))
+    return report_violations(violations)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

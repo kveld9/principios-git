@@ -7,6 +7,13 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+### Added
+
+- **Compuerta diferencial de complejidad ciclomática (*ratchet*)**: Nuevo script `scripts/check-complexity.py` y
+  pruebas unitarias `scripts/test_check_complexity.py` que bloquean en pre-commit y CI funciones que superen el límite
+  de CCN o empeoren deuda técnica previa, tolerando código heredado no modificado. Integración en `new-repo.sh` y
+  `.githooks/pre-commit.example`.
+
 ## [1.0.0] - 2026-10-19
 
 ### Added
